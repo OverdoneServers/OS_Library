@@ -34,11 +34,10 @@ function OverdoneServers:LoadLuaFile(module, f, type) //type 1 = SERVER, 2 = CLI
 end
 
 function OverdoneServers:AddModule(moduleData)
-    --PrintTable(moduleData)
-    //TODO: Check if module already exists
-    print("HEYYYYY: ", isstring(moduleData), isstring(moduleData) and moduleData or "")
-    self.IncludeData = moduleData
-    table.insert(OverdoneServers.Modules, include(self.LoaderDir .. "/shared/module.lua"))
+    moduleData.FolderName = OverdoneServers.IncludeData
 
-    
+    //TODO: Check if module already exists
+
+    self.IncludeData = moduleData
+    self.Modules[moduleData.FolderName] = include(self.LoaderDir .. "/shared/module.lua")
 end

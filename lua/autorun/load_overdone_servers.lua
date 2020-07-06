@@ -9,3 +9,5 @@ OverdoneServers.LoaderDir = OverdoneServers.MainDir .. "/loader"
 include(OverdoneServers.LoaderDir .. "/shared/setup.lua")
 
 include(OverdoneServers.LoaderDir .. "/shared/load_modules.lua")
+
+print("Loaded Overdone Servers!!!")

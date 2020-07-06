@@ -1,7 +1,4 @@
 local ModuleData = OverdoneServers.IncludeData
-print("----------------------------------------------")
-PrintTable(ModuleData)
-print("----------------------------------------------")
 
 local MODULE = {}
 
@@ -49,5 +46,7 @@ function MODULE:OnRemove()
 end
 
 setmetatable(MODULE, ModuleData)
+
+OverdoneServers.IncludeData = nil
 
 return MODULE
