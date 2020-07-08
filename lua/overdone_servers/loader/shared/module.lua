@@ -1,8 +1,7 @@
+if OverdoneServers.IncludeData == nil then return end
 local ModuleData = OverdoneServers.IncludeData
 
 local MODULE = {}
-
-MODULE._Enabled = nil
 
 function MODULE:IsEnabled()
     return self._Enabled
@@ -26,27 +25,30 @@ function MODULE:SetEnabled(enabled)
     return true
 end
 
-function MODULE:Awake()
+function MODULE:Enable() 
+    return self:SetEnabled(true)
 end
 
-function MODULE:Start()
+function MODULE:Disable() 
+    return self:SetEnabled(false)
 end
 
-function MODULE:OnEnable()
-end
+function MODULE:Awake() end
 
-function MODULE:OnDisable()
-end
+function MODULE:Start() end
 
-function MODULE:OnDestory()
-end
+function MODULE:OnEnable() end
+
+function MODULE:OnDisable() end
+
+function MODULE:OnDestory() end
 
 function MODULE:OnRemove()
     self:OnDestory()
 end
 
-setmetatable(MODULE, ModuleData)
+OverdoneServers:AddMetaTable(ModuleData, MODULE)
 
 OverdoneServers.IncludeData = nil
 
-return MODULE
+return ModuleData

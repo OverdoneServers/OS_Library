@@ -1,8 +1,7 @@
+if OverdoneServers.IncludeData == nil then return end
 local ModuleName, FilesToLoad = OverdoneServers.IncludeData.FolderName, OverdoneServers.IncludeData.FilesToLoad
-print("loading: ", ModuleName, FilesToLoad)
 
 for type, files in pairs(FilesToLoad) do
-    print("hello there")
     for _, f in ipairs(files) do
             if type == "Server" and SERVER then
             OverdoneServers:LoadLuaFile(ModuleName, f, 1)
@@ -15,5 +14,5 @@ for type, files in pairs(FilesToLoad) do
 end
 
 OverdoneServers.IncludeData = nil
-
+print("cool")
 return true
