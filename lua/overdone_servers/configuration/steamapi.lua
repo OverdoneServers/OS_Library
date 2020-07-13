@@ -1,4 +1,4 @@
-return
+return {
 
 // #    Steam API
 // #
@@ -15,3 +15,6 @@ return
 
 Enabled = 0,
 Key = ""
+
+//END OF CONFIG
+}

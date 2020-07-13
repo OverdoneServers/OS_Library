@@ -16,7 +16,7 @@ return {
 // #        @Password       : The Password of the SQL Server
 // #        @Port           : The Port of the SQL Server
 
-"SERVER1" = {
+["SERVER1"] = {
     Enabled = 0,
     Hostname = "",
     Database = "",
@@ -24,8 +24,7 @@ return {
     Password = "",
     Port = 3306,
 },
-
-"SERVER2" = {
+["SERVER2"] = {
     Enabled = 0,
     Hostname = "",
     Database = "",
@@ -33,10 +32,6 @@ return {
     Password = "",
     Port = 3306,
 },
-
-
-
-
 
 //END OF CONFIG
 }

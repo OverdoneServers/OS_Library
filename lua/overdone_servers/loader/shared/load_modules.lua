@@ -1,10 +1,14 @@
+AddCSLuaFile(OverdoneServers.LoaderDir .. "/shared/module.lua")
+
 local files, dirs = file.Find(OverdoneServers.ModulesLocation .. "/*", "LUA")
 
 for _, module in ipairs(dirs) do
     local ModuleDir = OverdoneServers.ModulesLocation .. "/" .. module
-    if file.Exists(ModuleDir .. "/_module.lua", "LUA") then
+    local moduleFile = ModuleDir .. "/_module.lua"
+    if file.Exists(moduleFile, "LUA") then
         --OverdoneServers.IncludeData = module
-        include(ModuleDir .. "/_module.lua")
+        AddCSLuaFile(moduleFile)
+        include(moduleFile)
     else
         ErrorNoHalt("Error: module.lua not found for " .. module .. "!\n") //TODO: change to pretty print
     end

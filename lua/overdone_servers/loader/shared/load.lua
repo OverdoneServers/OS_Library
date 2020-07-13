@@ -14,5 +14,4 @@ for type, files in pairs(FilesToLoad) do
 end
 
 OverdoneServers.IncludeData = nil
-print("cool")
 return true

@@ -1,3 +1,4 @@
+AddCSLuaFile()
 function OverdoneServers:PrettyPrint(txt)
 	if SERVER then
 		MsgC(Color(251, 59, 91), txt .. "\n")
@@ -88,4 +89,24 @@ function OverdoneServers:LoadModule(module)
     end
     
     return not failed
+end
+
+function OverdoneServers:LoadSharedFile(file)
+    if SERVER then AddCSLuaFile(file) end
+    include(file)
+end
+
+function OverdoneServers:LoadClientFile(file)
+    if SERVER then AddCSLuaFile(file) end
+    if CLIENT then include(file) end
+end
+
+function OverdoneServers:GetSequentialColor(color)
+    local h,s,l = ColorToHSL(color)
+    h = h + 1
+    if h > 360 then
+        h = 0
+    end
+    local t = HSLToColor(h,s,l)
+    return Color(t.r, t.g, t.b, color.a)
 end
