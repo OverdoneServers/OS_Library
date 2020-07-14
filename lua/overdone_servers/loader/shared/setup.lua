@@ -11,32 +11,58 @@ function OverdoneServers:ValidModuleName(name)
     return name != "" and name != " " and name != ""
 end 
 
-local lastModule = ""
-local lastType = 0
-function OverdoneServers:LoadLuaFile(module, f, type) //type 1 = SERVER, 2 = CLIENT, 3 = SHARED
-    //Module can be accessed here by using OverdoneServers.IncludeData
-    if module != lastModule then //TODO: make the name change the spacing of -----
+OverdoneServers.Loading = {}
+OverdoneServers.Loading.lastModule = ""
+OverdoneServers.Loading.lastType = -0
+/*
+    1 = SERVER
+    2 = CLIENT
+    3 = SHARED
+    4 = FONT
+*/
+
+function OverdoneServers:PrintLoadingText(module, type)
+    if isstring(type) then
+        type = string.upper(type)
+        if type == "SERVER" then type = 1
+        elseif type == "CLIENT" then type = 2
+        elseif type == "SHARED" then type = 3
+        elseif type == "FONTS" then type = 4
+        else type = 0 end
+    end 
+
+    if module != self.Loading.lastModule then //TODO: make the name change the spacing of -----
         self:PrettyPrint("///////////////////////////////////////////////////")
         self:PrettyPrint("//------------------ Loading " .. (self:ValidModuleName(module) and module or "Invalid Name") .. " ---------------------//")
         self:PrettyPrint("///////////////////////////////////////////////////")
-        lastModule = module
+        self.Loading.lastModule = module
+        self.Loading.lastType = -0
     end
+    
+    local sep = function() self:PrettyPrint("//                                               //") end
 
-	if type == 1 and lastType != 1 then self:PrettyPrint("//------------------ SERVER ---------------------//") lastType = 1 end
-	if type == 2 and lastType != 2 then self:PrettyPrint("//------------------ CLIENT ---------------------//") lastType = 2 end
-	if type == 3 and lastType != 3 then self:PrettyPrint("//------------------ SHARED ---------------------//") lastType = 3 end
+    if type == 1 and self.Loading.lastType != 1 then sep() self:PrettyPrint("//------------------ SERVER ---------------------//") sep() self.Loading.lastType = 1 end
+	if type == 2 and self.Loading.lastType != 2 then sep() self:PrettyPrint("//------------------ CLIENT ---------------------//") sep() self.Loading.lastType = 2 end
+	if type == 3 and self.Loading.lastType != 3 then sep() self:PrettyPrint("//------------------ SHARED ---------------------//") sep() self.Loading.lastType = 3 end
+	if type == 4 and self.Loading.lastType != 4 then sep() self:PrettyPrint("//------------------ FONTS ----------------------//") sep() self.Loading.lastType = 4 end
+	if type == 0 and self.Loading.lastType != 0 then sep() self:PrettyPrint("//------------------ CUSTOM ---------------------//") sep() self.Loading.lastType = 0 end
+end
+
+function OverdoneServers:LoadLuaFile(module, f, type)
+    //Module can be accessed here by using OverdoneServers.IncludeData
 
     local fil = self.MainDir .. "/modules/" .. module .. "/" .. (type == 1 and "server" or type == 2 and "client" or type == 3 and "shared") .. "/" .. f
 
     local okay = true
-    if not file.Exists(fil, "LUA") then //TODO: Just have this replace the "Initialize" text
-        f = f .. " - NOT FOUND"
-        okay = false
-    elseif not (file.Size(fil, "LUA") > 0) then
-        f = f .. " - EMPTY"
-        okay = false
+    if not CLIENT then
+        if not file.Exists(fil, "LUA") then //TODO: Just have this replace the "Initialize" text
+            f = f .. " - NOT FOUND"
+            okay = false
+        elseif not (file.Size(fil, "LUA") > 0) then
+            f = f .. " - EMPTY"
+            okay = false
+        end
     end
-
 	self:PrettyPrint("// [ Initialize ]: " .. f .. string.rep(" ", 30 - f:len()) .. "//")
 
     if okay then
@@ -71,19 +97,43 @@ function OverdoneServers:AddMetaTable(tab, metatable, overwrite)
     end
 end
 
-function OverdoneServers:LoadModule(module)
+function OverdoneServers:LoadModule(module)//TODO: Change FilesToLoad to DataToLoad or something like it
     local failed = false
 
     local ModuleName, FilesToLoad = module.FolderName, module.FilesToLoad
 
     for type, files in pairs(FilesToLoad) do
         for _, f in ipairs(files) do
+            if (not CLIENT or type != "Server") and type != "Materials" then 
+            self:PrintLoadingText(ModuleName, type)
+            end
                 if type == "Server" and SERVER then
-                if OverdoneServers:LoadLuaFile(ModuleName, f, 1) == false then failed = true end
+                if self:LoadLuaFile(ModuleName, f, 1) == false then failed = true end
             elseif type == "Client" then
-                if OverdoneServers:LoadLuaFile(ModuleName, f, 2) == false then failed = true end
+                if self:LoadLuaFile(ModuleName, f, 2) == false then failed = true end
             elseif type == "Shared" then
-                if OverdoneServers:LoadLuaFile(ModuleName, f, 3) == false then failed = true end
+                if self:LoadLuaFile(ModuleName, f, 3) == false then failed = true end
+            elseif type == "Fonts" then
+                module.FontLocation = "OS:" .. ModuleName .. ":"
+                if f[1] == nil or f[2] == nil or f[3] == nil then
+                    f[1] = f[1] .. " - ERROR"
+                    self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
+                    continue
+                end
+                self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
+                if SERVER then resource.AddSingleFile("resource/fonts/" .. f[2]) end
+                if CLIENT then
+                    if f[3].size != nil then
+                        f[3].size = ScreenScale(f[3].size)
+                    end
+                    surface.CreateFont(module.FontLocation .. f[1], f[3])
+                end
+            elseif type == "Materials" then
+                if isstring(f) then
+                    //TODO: Make this add all files in the specified directory
+                elseif istable(f) then
+                    //TODO: Make this add the specific file with resource.AddFile()
+                end 
             end
         end
     end

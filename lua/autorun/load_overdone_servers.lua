@@ -22,9 +22,3 @@ end
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_modules.lua")
 
 print("Loaded Overdone Servers!!!")
-
-local a,b,c = .3,0,10
-
-print("Linear", OverdoneServers.EaseFunctions:Linear(a,b,c))
-
-print("Spring", OverdoneServers.EaseFunctions:Spring(a,b,c))

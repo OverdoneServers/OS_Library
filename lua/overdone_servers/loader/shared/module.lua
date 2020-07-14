@@ -49,6 +49,10 @@ end
 
 OverdoneServers:AddMetaTable(ModuleData, MODULE)
 
+function ModuleData:Font(fontName)
+    return self.FontLocation .. fontName
+end
+
 OverdoneServers.IncludeData = nil
 
 return ModuleData

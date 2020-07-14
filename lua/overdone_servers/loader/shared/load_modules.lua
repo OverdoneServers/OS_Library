@@ -10,7 +10,7 @@ for _, module in ipairs(dirs) do
         AddCSLuaFile(moduleFile)
         include(moduleFile)
     else
-        ErrorNoHalt("Error: module.lua not found for " .. module .. "!\n") //TODO: change to pretty print
+        ErrorNoHalt("Error: _module.lua not found for " .. module .. "!\n") //TODO: change to pretty print
     end
 end
 
