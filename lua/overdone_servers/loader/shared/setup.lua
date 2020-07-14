@@ -160,3 +160,67 @@ function OverdoneServers:GetSequentialColor(color)
     local t = HSLToColor(h,s,l)
     return Color(t.r, t.g, t.b, color.a)
 end
+
+if CLIENT then //TODO: move this to a new lib
+    local PanelMeta = FindMetaTable("Panel")
+
+    OverdoneServers.DPanels3D = {}
+
+    function PanelMeta:OS_3D_CENTER(scale)
+    	if not self:IsValid() then return end
+        local x,y = self:GetSize()
+        return Vector(-x*scale/2, -y*scale/2, 0)
+    end
+
+    //If given entity, the pos and ang act as a offset
+    //If locked, then the panel will work as expected, if false, the offsets will float depending on the entities center
+    function PanelMeta:OS_Start3D(position, angle, scale, entity, lockEntPos)
+    	if not self:IsValid() then return end
+
+        if position != nil and angle != nil and scale != nil then
+            self.OS_3D_Pos = position
+            self.OS_3D_Ang = angle
+            self.OS_3D_Scale = scale
+        else
+            if self.OS_3D_Pos == nil or self.OS_3D_Ang == nil or self.OS_3D_Scale == nil then
+                ErrorNoHalt("OverdoneServers: Invalid args given for 3D Panel Generation!!!\n")
+                return false
+            end
+        end
+
+        if IsValid(entity) then self.OS_3D_Ent = entity end
+        self.OS_3D_LockEntPos = (lockEntPos == nil or lockEntPos) and true or false
+
+        table.insert(OverdoneServers.DPanels3D, self)
+        return true
+    end
+
+    local function GetEntOffset(entity, offset)
+        local ang = entity:GetAngles()
+        return ang:Forward()*offset.x + ang:Right()*offset.y + ang:Up()*offset.z
+    end
+
+    hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
+        local toRender = {}
+        local toRemove = {}
+        for i = 1, #OverdoneServers.DPanels3D, 1 do
+            local pan = OverdoneServers.DPanels3D[i]
+            if not IsValid(pan) then table.insert(toRemove, i)
+            else table.insert(toRender, pan) end
+        end
+        
+        for _,p in ipairs(toRender) do
+            
+            vgui.Start3D2D(p.OS_3D_Ent and (p.OS_3D_LockEntPos and (GetEntOffset(p.OS_3D_Ent, p.OS_3D_Pos) + p.OS_3D_Ent:GetPos()) or (p.OS_3D_Ent:GetPos() + p.OS_3D_Pos)) or p.OS_3D_Pos,
+                p.OS_3D_Ent and (p.OS_3D_Ent:GetAngles() + p.OS_3D_Ang) or p.OS_3D_Ang,
+                p.OS_3D_Scale
+            )
+    		    p:Paint3D2D()
+    	    vgui.End3D2D()
+        end
+        
+        for _,pID in ipairs(toRemove) do
+            table.remove(OverdoneServers.DPanels3D, pID)
+        end
+    end)
+end
