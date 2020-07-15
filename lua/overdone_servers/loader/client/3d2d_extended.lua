@@ -2,16 +2,123 @@ local PanelMeta = FindMetaTable("Panel")
 
 OverdoneServers.DPanels3D = {}
 
+function OverdoneServers.DPanels3D:CreateButton(parent)
+    local but = parent:Add("Panel")
+    function but:IsHovered()
+        return self.Hovered
+    end
+
+    function but:OnMousePressed(key) end
+    function but:DoClick() end
+    function but:DoRightClick() end
+
+    function but:MousePressed(key)
+		if self:OnMousePressed(key) then return end
+    	if key == MOUSE_LEFT then self:DoClick() end
+    	if key == MOUSE_RIGHT then self:DoRightClick() end
+
+    	--if key == MOUSE_WHEEL_UP then self:DoRightClick() end //TODO: Make this work!
+    	--if key == MOUSE_WHEEL_DOWN then self:DoRightClick() end
+	end
+
+    but.Color = Color(100, 100, 100, 200)
+    but.TextColor = Color(255, 255, 255, 255)
+    but.BorderColor = Color(200, 200, 200, 50)
+
+    function but:SetColor(color)
+        self.Color = color
+    end
+
+    function but:GetColor()
+        return self.Color
+    end
+
+    function but:SetTextColor(color)
+        self.TextColor = color
+    end
+
+    function but:GetTextColor()
+        return self.TextColor
+    end
+
+    function but:SetBorderColor(color)
+        self.BorderColor = color
+    end
+
+    function but:GetBorderColor()
+        return self.BorderColor
+    end
+
+    but.ClickAnimationMultiplier = 2
+
+    local clickAnimationTimeMax = 2
+    local clickAnimationTime = 0
+
+    function but:RenderHover()
+        local w,h = self:GetSize()
+        self.hoverColor = self.hoverColor or 0
+	    self.hoverColor = Lerp(RealFrameTime() * 5, self.hoverColor, self:IsHovered() and 120 or 0)
+	    
+        self.hoverBorder = self.hoverBorder or 0
+        self.hoverBorder = Lerp(RealFrameTime() * 5, self.hoverBorder, self:IsHovered() and 255 or self.BorderColor.a)
+	    
+        self.clickColor = self.clickColor or OverdoneServers:ColorToVector(self.Color)
+        local colVec = OverdoneServers:ColorToVector(self.Color)
+        print(type(colVec), type(self.clickColor))
+        if self.clickColor != colVec then
+            self.clickColor = LerpVector(RealFrameTime() * 2, self.clickColor, colVec)
+        end
+
+        if math.abs(self.clickColor:DistToSqr(colVec)) < 10 then
+            self.clickColor = colVec
+        end
+
+        draw.RoundedBox(0,0,0,w,h, Color(0,0,0,100))
+        draw.RoundedBox(0,0,0,w,h, OverdoneServers:VectorToColor(self.clickColor))
+
+        OverdoneServers.M2D.OutlinedBox(5, 0, 0, w, h, ColorAlpha(self.BorderColor, self.hoverBorder))
+    end
+
+    return but
+end
+
 function PanelMeta:OS_3D_CENTER(scale)
 	if not self:IsValid() then return end
     local x,y = self:GetSize()
     return Vector(-x*scale/2, -y*scale/2, 0)
 end
 
+local ScanForChildren2 = nil
+
+local childrenList = {}
+
+local ScanForChildren1 = function(pnl)
+    for _,v in ipairs(pnl:GetChildren()) do
+        table.insert(childrenList, v)
+        ScanForChildren2(v)
+    end
+end
+
+ScanForChildren2 = function(pnl)
+    for _,v in ipairs(pnl:GetChildren()) do
+        table.insert(childrenList, v)
+        ScanForChildren1(v)
+    end
+end
+
 //If given entity, the pos and ang act as a offset
 //[DOES NOT WORK if pos != VectorOffset] If locked, then the panel will work as expected, if false, the offsets will float depending on the entities center
 function PanelMeta:OS_Start3D(position, angle, scale, entity, centerPanel, lockEntPos)
 	if not self:IsValid() then return end
+
+    childrenList = {}
+
+    if self.ReachDistance != nil then
+        ScanForChildren1(self)
+        for _,pan in ipairs(childrenList) do
+            pan.ReachDistance = pan.ReachDistance or self.ReachDistance
+        end
+    end
 
     if position != nil and angle != nil and scale != nil then
         self.OS_3D_Pos = position

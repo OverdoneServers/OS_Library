@@ -1,6 +1,6 @@
 --Pulled from /garrysmod/lua/derma/derma_utils.lua
 
-local matBlurScreen = Material( "pp/blurscreen" )
+local matBlurScreen = Material("pp/blurscreen")
 
 --[[function Derma_DrawBackgroundBlur( panel, starttime )
 

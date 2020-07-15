@@ -1,3 +1,5 @@
+//MODIFIED BY Overdone Servers
+
 --[[
 	
 3D2D VGUI Wrapper
@@ -26,19 +28,19 @@ local origin = Vector(0, 0, 0)
 local angle = Angle(0, 0, 0)
 local normal = Vector(0, 0, 0)
 local scale = 0
-local maxrange = 0
+local ReachDistanceDefault = 71
 
 -- Helper functions
 
-local function getCursorPos()
+local function getCursorPos(pnl)
 	local p = util.IntersectRayWithPlane(LocalPlayer():EyePos(), LocalPlayer():GetAimVector(), origin, normal)
 
 	-- if there wasn't an intersection, don't calculate anything.
 	if not p then return end
-	if WorldToLocal(LocalPlayer():GetShootPos(), Angle(0,0,0), origin, angle).z < 0 then return end
 
-	if maxrange > 0 then
-		if p:Distance(LocalPlayer():EyePos()) > maxrange then
+	if WorldToLocal(LocalPlayer():GetShootPos(), Angle(0,0,0), origin, angle).z < 0 then return end
+	if (pnl != nil and (pnl.ReachDistance or ReachDistanceDefault) or ReachDistanceDefault) != 0 then
+		if p:Distance(LocalPlayer():EyePos()) > (pnl != nil and (pnl.ReachDistance or ReachDistanceDefault) or ReachDistanceDefault) then
 			return
 		end
 	end
@@ -89,11 +91,11 @@ local inputWindows = {}
 local usedpanel = {}
 
 local function isMouseOver(pnl)
-	return pointInsidePanel(pnl, getCursorPos())
+	return pointInsidePanel(pnl, getCursorPos(pnl))
 end
 
 local function postPanelEvent(pnl, event, ...)
-	if not IsValid(pnl) or not pnl:IsVisible() or not pointInsidePanel(pnl, getCursorPos()) then return false end
+	if not IsValid(pnl) or not pnl:IsVisible() or not pointInsidePanel(pnl, getCursorPos(pnl)) then return false end
 
 	local handled = false
 	
@@ -118,7 +120,7 @@ end
 -- Always have issue, but less
 local function checkHover(pnl, x, y, found)
 	if not (x and y) then
-		x, y = getCursorPos()
+		x, y = getCursorPos(pnl)
 	end
 
 	local validchild = false
@@ -190,27 +192,51 @@ hook.Add("KeyRelease", "VGUI3D2DMouseRelease", function(_, key)
 	end
 end)
 
+hook.Add("InputMouseApply", "VGUI3D2DMouseClick", function()
+	local out = input.WasMouseReleased(MOUSE_LEFT) and MOUSE_LEFT or
+					input.WasMouseReleased(MOUSE_RIGHT) and MOUSE_RIGHT or
+					input.WasMouseReleased(MOUSE_MIDDLE) and MOUSE_MIDDLE or
+					input.WasMouseReleased(MOUSE_4) and MOUSE_4 or
+					input.WasMouseReleased(MOUSE_5) and MOUSE_5 or
+					input.WasMouseReleased(MOUSE_WHEEL_UP) and MOUSE_WHEEL_UP or
+					input.WasMouseReleased(MOUSE_WHEEL_DOWN) and MOUSE_WHEEL_DOWN or nil
+
+	for pnl, key in pairs(inputWindows) do
+		if IsValid(pnl) then
+			if pnl._lastMousePressed == out then return end
+        	pnl._lastMousePressed = out
+
+			origin = pnl.Origin
+			scale = pnl.Scale
+			angle = pnl.Angle
+			normal = pnl.Normal
+
+			postPanelEvent(pnl, "MousePressed", out)
+		end
+	end
+end)
+
 function vgui.Start3D2D(pos, ang, res)
 	origin = pos
 	scale = res
 	angle = ang
 	normal = ang:Up()
-	maxrange = 0
+	--maxrange = 0
 	
 	cam.Start3D2D(pos, ang, res)
 end
-
+--[[
 function vgui.MaxRange3D2D(range)
 	maxrange = isnumber(range) and range or 0
 end
-
+]]
 function vgui.IsPointingPanel(pnl)
 	origin = pnl.Origin
 	scale = pnl.Scale
 	angle = pnl.Angle
 	normal = pnl.Normal
-
-	return pointInsidePanel(pnl, getCursorPos())
+	
+	return pointInsidePanel(pnl, getCursorPos(pnl))
 end
 
 local Panel = FindMetaTable("Panel")
@@ -223,7 +249,7 @@ function Panel:Paint3D2D()
 	-- Override gui.MouseX and gui.MouseY for certain stuff
 	local oldMouseX = gui.MouseX
 	local oldMouseY = gui.MouseY
-	local cx, cy = getCursorPos()
+	local cx, cy = getCursorPos(pnl)
 
 	function gui.MouseX()
 		return (cx or 0) / scale

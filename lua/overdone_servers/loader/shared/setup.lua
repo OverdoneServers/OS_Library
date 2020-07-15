@@ -160,3 +160,20 @@ function OverdoneServers:GetSequentialColor(color)
     local t = HSLToColor(h,s,l)
     return Color(t.r, t.g, t.b, color.a)
 end
+
+function OverdoneServers:LightenColor(color)
+    return Color(color.r + ((255-color.r)/2), color.g + ((255-color.g)/2), color.b + ((255-color.b)/2))
+end
+
+function OverdoneServers:DarkenColor(color)
+    return Color(color.r/2, color.g/2, color.b/2)
+end
+
+function OverdoneServers:ColorToVector(color)
+    return Vector(color.r, color.g, color.b)
+end
+
+function OverdoneServers:VectorToColor(vector)
+    return Color(vector.x, vector.y, vector.z)
+end
+
