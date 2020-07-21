@@ -1,3 +1,9 @@
+--[[ 
+
+    ~~~ Notes ~~~
+
+]]
+
 AddCSLuaFile()
 function OverdoneServers:PrettyPrint(txt)
 	if SERVER then
@@ -9,7 +15,7 @@ end
 
 function OverdoneServers:ValidModuleName(name)
     return name != "" and name != " " and name != ""
-end 
+end
 
 OverdoneServers.Loading = {}
 OverdoneServers.Loading.lastModule = ""
@@ -101,33 +107,24 @@ function OverdoneServers:LoadModule(module)//TODO: Change FilesToLoad to DataToL
     local failed = false
 
     local ModuleName, FilesToLoad = module.FolderName, module.FilesToLoad
+    
+    module.FontLocation = module.FontLocation or "OS:" .. ModuleName .. ":"
+    module.Networking = module.Networking or module.FontLocation
 
     for type, files in pairs(FilesToLoad) do
         for _, f in ipairs(files) do
             if (not CLIENT or type != "Server") and type != "Materials" then 
-            self:PrintLoadingText(ModuleName, type)
+                self:PrintLoadingText(ModuleName, type)
             end
-                if type == "Server" and SERVER then
+            
+            if type == "Server" and SERVER then
                 if self:LoadLuaFile(ModuleName, f, 1) == false then failed = true end
             elseif type == "Client" then
                 if self:LoadLuaFile(ModuleName, f, 2) == false then failed = true end
             elseif type == "Shared" then
                 if self:LoadLuaFile(ModuleName, f, 3) == false then failed = true end
             elseif type == "Fonts" then
-                module.FontLocation = "OS:" .. ModuleName .. ":"
-                if f[1] == nil or f[2] == nil or f[3] == nil then
-                    f[1] = f[1] .. " - ERROR"
-                    self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
-                    continue
-                end
-                self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
-                if SERVER then resource.AddSingleFile("resource/fonts/" .. f[2]) end
-                if CLIENT then
-                    if f[3].size != nil then
-                        f[3].size = ScreenScale(f[3].size)
-                    end
-                    surface.CreateFont(module.FontLocation .. f[1], f[3])
-                end
+                self:LoadFont(f, module.FontLocation)
             elseif type == "Materials" then
                 if isstring(f) then
                     //TODO: Make this add all files in the specified directory
@@ -141,6 +138,22 @@ function OverdoneServers:LoadModule(module)//TODO: Change FilesToLoad to DataToL
     return not failed
 end
 
+function OverdoneServers:LoadFont(f, fontLocation)
+    if f[1] == nil or f[2] == nil or f[3] == nil then
+        f[1] = f[1] .. " - ERROR"
+        self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
+        return
+    end
+    self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
+    if SERVER then resource.AddSingleFile("resource/fonts/" .. f[2]) end
+    if CLIENT then
+        if f[3].size != nil then
+            f[3].size = ScreenScale(f[3].size)
+        end
+        surface.CreateFont(fontLocation .. f[1], f[3])
+    end
+end
+
 function OverdoneServers:LoadSharedFile(file)
     if SERVER then AddCSLuaFile(file) end
     include(file)
@@ -150,30 +163,3 @@ function OverdoneServers:LoadClientFile(file)
     if SERVER then AddCSLuaFile(file) end
     if CLIENT then include(file) end
 end
-
-function OverdoneServers:GetSequentialColor(color)
-    local h,s,l = ColorToHSL(color)
-    h = h + 1
-    if h > 360 then
-        h = 0
-    end
-    local t = HSLToColor(h,s,l)
-    return Color(t.r, t.g, t.b, color.a)
-end
-
-function OverdoneServers:LightenColor(color)
-    return Color(color.r + ((255-color.r)/2), color.g + ((255-color.g)/2), color.b + ((255-color.b)/2))
-end
-
-function OverdoneServers:DarkenColor(color)
-    return Color(color.r/2, color.g/2, color.b/2)
-end
-
-function OverdoneServers:ColorToVector(color)
-    return Vector(color.r, color.g, color.b)
-end
-
-function OverdoneServers:VectorToColor(vector)
-    return Color(vector.x, vector.y, vector.z)
-end
-
