@@ -21,6 +21,9 @@ end
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_master_fonts.lua")
 
+include(OverdoneServers.LoaderDir .. "/server/load_resources.lua")
+
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_modules.lua")
+
 
 print("Loaded Overdone Servers!!!")

@@ -124,11 +124,6 @@ end
 //[DOES NOT WORK if pos != VectorOffset] If locked, then the panel will work as expected, if false, the offsets will float depending on the entities center
 function PanelMeta:OS_Start3D(position, angle, scale, entity, lockEntPos, lockEntAng, centerPanel)
 	if not self:IsValid() then return end
-
-    local x, y = self:GetSize()
-    x,y = x*scale, y*scale
-    --print(x,y)
-    --print((entity and entity:GetAngles():Right()*(x/2) or angle:Right()*(x/2)), (entity and entity:GetAngles():Up()*(y/2) or angle:Up()*(y/2)))
     childrenList = {}
 
     if self.ReachDistance != nil then
@@ -257,9 +252,55 @@ function OverdoneServers.DPanels3D:CreateFloatingPanel(bob, bobSpeed, bobAmplitu
     BuildButtonClickAndHoverEvent(panel, true)
 
     function panel:Paint(w,h)
-        draw.RoundedBox(0, 0,0,w,h, Color(0,0,255,255))
-		draw.SimpleText("helo", "OS:os_texas_holdem:Fancy", w/2, h/2, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         panel.OS_3D_PosOffset = Vector(0, 0, bobAmplitude * math.sin(bobSpeed * CurTime() + offset))
     end
+    return panel
+end
+
+function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset)
+    local panel = self:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset)
+    
+    function panel:SizeX()
+        local x,y = self:GetSize()
+        return x
+    end
+
+    function panel:SizeY()
+        local x,y = self:GetSize()
+        return y
+    end
+
+    function panel:SetBGColor(color)
+        self._BGColor = IsColor(color) and color or nil
+    end
+
+    function panel:GetBGColor(color)
+        return self._BGColor
+    end
+
+    local top = panel:Add("Panel")
+    function top:Paint(w,h)
+        self:SetSize(panel:SizeX(), panel:SizeY()/2)
+
+        draw.RoundedBox(ScrH()*0.04, 0,0, w,h, panel._BGColor or Color(75, 75, 75, 200))
+    end
+
+    local bottom = panel:Add("Panel")
+    function bottom:Paint(w,h)
+        self:SetPos(0, panel:SizeY()/2)
+        self:SetSize(panel:SizeX(), panel:SizeY()/2)
+    end
+    
+    local arrow = bottom:Add("DSprite")
+    arrow._DefPaint = arrow.Paint
+    arrow:SetMaterial(Material("overdone_servers/os_library/panels/hover_panel_arrow.png", "UnlitGeneric"))
+    function arrow:Paint(w,h)
+        self:_DefPaint(w,h)
+        local x,y = panel:SizeX()*.65, panel:SizeY()*.3
+        self:SetSize(x,y)
+        self:SetPos(panel:SizeX()*.5, y/2)
+        self:SetColor(panel._BGColor or Color(75, 75, 75, 200))
+    end
+
     return panel
 end
