@@ -140,7 +140,7 @@ function PanelMeta:OS_Start3D(position, angle, scale, entity, lockEntPos, lockEn
     
     if position != nil and angle != nil and scale != nil then
         self.OS_3D_Pos = position
-        self.OS_3D_Ang = angle
+        self.OS_3D_Ang = isangle(angle) and angle + Angle(0,0,90) or angle
         self.OS_3D_Scale = scale
     else
         if self.OS_3D_Pos == nil or self.OS_3D_Ang == nil or self.OS_3D_Scale == nil then
@@ -153,8 +153,8 @@ function PanelMeta:OS_Start3D(position, angle, scale, entity, lockEntPos, lockEn
 
     self.OS_3D_PosOffset = Vector(0,0,0)
 
-    self.OS_3D_LockEntPos = (lockEntPos == nil or lockEntPos)
-    self.OS_3D_LockEntAng = (lockEntAng == nil or lockEntAng)
+    self.OS_3D_LockEntPos = (lockEntPos == nil or not lockEntPos)
+    self.OS_3D_LockEntAng = (lockEntAng == nil or not lockEntAng)
 
     self.OS_3D_CenterPanel = (centerPanel == nil or centerPanel) and true or false
 
@@ -177,32 +177,40 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
     end
     
     for _,p in ipairs(toRender) do
-        local centerOffset = p:OS_3D_CENTER(p.OS_3D_Scale)
+        local scale = isfunction(p.OS_3D_Scale) and p.OS_3D_Scale(p) or p.OS_3D_Scale
+
+        local centerOffset = p:OS_3D_CENTER(scale)
         local x,y = p:GetSize()
-        x = p.OS_3D_Scale*x or x
-        y = p.OS_3D_Scale*y or y
+        x = scale*x or x
+        y = scale*y or y
         
         local returnedAng = isfunction(p.OS_3D_Ang) and p.OS_3D_Ang(p, p.OS_3D_Ent) or p.OS_3D_Ang
 
         local ang = p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or returnedAng
 
-        ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Forward(), returnedAng.x or 0)
-        ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Right(), returnedAng.y or 0)
-        ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Up(), returnedAng.z or 0)
-        
+        ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Forward(), returnedAng.x or 0)
+        ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Right(), returnedAng.y or 0)
+        ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Up(), returnedAng.z or 0)
+
         local pos = p.OS_3D_PosOffset
-            + (p.OS_3D_Ent and (
-            p.OS_3D_Ent:GetPos()
-                    + p.OS_3D_Pos
-                    - (p.OS_3D_CenterPanel and ang:Forward()*(x/2) + ang:Right()*(y/2) or Vector())
-                )
-                or p.OS_3D_Pos)
+            + (p.OS_3D_Ent and
+                p.OS_3D_Ent:LocalToWorld(p.OS_3D_Pos)
+                - (p.OS_3D_CenterPanel and
+                    ang:Forward()*(x/2)
+                    + ang:Right()*(y/2)
+                or Vector())
+            or p.OS_3D_Pos)
 
-
-        p.OS_3D_LockEntPos = isvector(p.OS_3D_LockEntPos) and p.OS_3D_LockEntPos or (p.OS_3D_LockEntPos == false and pos) or nil
-        pos = p.OS_3D_LockEntPos or pos
-
-        p.OS_3D_LockEntAng = isangle(p.OS_3D_LockEntAng) and p.OS_3D_LockEntAng or (p.OS_3D_LockEntAng == false and ang) or nil
+        pos = (isvector(p.OS_3D_LockEntPos) and
+            p.OS_3D_LockEntPos
+            - (p.OS_3D_CenterPanel and
+                ang:Forward()*(x/2)
+                + ang:Right()*(y/2)
+            or Vector())
+        or pos)
+        p.OS_3D_LockEntPos = isvector(p.OS_3D_LockEntPos) and p.OS_3D_LockEntPos or (p.OS_3D_LockEntPos == true and p.OS_3D_PosOffset + (p.OS_3D_Ent and p.OS_3D_Ent:LocalToWorld(p.OS_3D_Pos) or Vector()) or nil)
+        //TODO: Why do panels FREAK OUT when placed on world (angle problem)
+        p.OS_3D_LockEntAng = isangle(p.OS_3D_LockEntAng) and p.OS_3D_LockEntAng or (p.OS_3D_LockEntAng == true and ang) or nil
         ang = p.OS_3D_LockEntAng or ang
 
         --render.DrawLine(pos, pos + (ang:Forward() * 30), Color(255, 0, 0))
@@ -223,7 +231,7 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
                      
             or (p.OS_3D_CenterPanel and (GetAngleOffset(p.OS_3D_Ang, centerOffset)) or Vector(0,0,0)) + p.OS_3D_Pos,]]
 
-        vgui.Start3D2D(pos, ang, p.OS_3D_Scale or 1)
+        vgui.Start3D2D(pos, ang, scale or 1)
 		p:Paint3D2D()
 	    vgui.End3D2D()
     end
