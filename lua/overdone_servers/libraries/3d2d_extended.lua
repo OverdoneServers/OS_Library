@@ -257,7 +257,7 @@ function OverdoneServers.DPanels3D:CreateFloatingPanel(bob, bobSpeed, bobAmplitu
     return panel
 end
 
-function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset)
+function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset, title, info)
     local panel = self:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset)
     
     function panel:SizeX()
@@ -300,6 +300,30 @@ function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, 
         self:SetSize(x,y)
         self:SetPos(panel:SizeX()*.5, y/2)
         self:SetColor(panel._BGColor or Color(75, 75, 75, 200))
+    end
+	
+	local titlepan = panel:Add("Panel")    
+	function titlepan:Paint(w,h)
+        --draw.RoundedBox(ScrH()*0.04, 0,0, w,h, panel._BGColor or Color(75, 75, 75, 200))
+        self:SetPos(0, 0)
+        self:SetSize(panel:SizeX(), 2*panel:SizeY()/10)
+		draw.SimpleText(title or "Title here", "DermaLarge", w/2, h/2, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 200), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+	
+	local infopan = panel:Add("Panel")
+    local breaks = 0
+    local lastchar = ""
+    for _,c in ipairs(string.Explode("",info)) do
+        if c == "\n" then
+            breaks = breaks + 1
+        end
+        lastchar = c
+    end
+	function infopan:Paint(w,h)
+        --draw.RoundedBox(ScrH()*0.04, 0,0, w,h, panel._BGColor or Color(75, 75, 75, 200))
+        self:SetPos(0, 2*panel:SizeY()/10)
+        self:SetSize(panel:SizeX(), 3*panel:SizeY()/10)
+		draw.DrawText(info or "Info here", "Trebuchet24", w/2, h/2 - breaks*panel:SizeY()/30, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 200), TEXT_ALIGN_CENTER)
     end
 
     return panel
