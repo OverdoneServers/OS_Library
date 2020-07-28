@@ -186,10 +186,11 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
         ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Forward(), returnedAng.x or 0)
         ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Right(), returnedAng.y or 0)
         ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Up(), returnedAng.z or 0)
-
+        
+        local returnedPos = isfunction(p.OS_3D_Pos) and p.OS_3D_Pos(p.OS_3D_Ent) or p.OS_3D_Pos
         local pos = p.OS_3D_PosOffset
             + (p.OS_3D_Ent and
-                p.OS_3D_Ent:LocalToWorld(p.OS_3D_Pos)
+                p.OS_3D_Ent:LocalToWorld(returnedPos)
                 - (p.OS_3D_CenterPanel and
                     ang:Forward()*(x/2)
                     + ang:Right()*(y/2)
@@ -247,28 +248,44 @@ function OverdoneServers.DPanels3D:CreateFloatingPanel(bob, bobSpeed, bobAmplitu
     followplayer = followplayer and true or false
     offset = offset or math.Rand(1, 1000)
 
-    local panel = vgui.Create("Panel")
+    local panel = vgui.Create("DPanel")
+    panel:SetSize(width,height)
     panel.OS_3D_FollowPlayer = followplayer
     BuildButtonClickAndHoverEvent(panel, true)
 
     function panel:Paint(w,h)
         panel.OS_3D_PosOffset = Vector(0, 0, bobAmplitude * math.sin(bobSpeed * CurTime() + offset))
+        --draw.RoundedBox(0, 0,0, w,h, Color(150, 75, 75, 50))
+        --draw.SimpleText("test", "CloseCaption_Bold", 100, 100, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+        --print(select(1,surface.GetTextSize("WWWWWWWWWWWWWWWWWWWWWWW")))
     end
     return panel
 end
 
-function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset, title, info)
-    local panel = self:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset)
+local arrowmat = Material("overdone_servers/os_library/panels/hover_panel_arrow.png", "UnlitGeneric")
+
+function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, offset, title, info, fontSize, titleFont, infoFont)
+    print(fontSize)
+    local panel = self:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, offset)
+    --panel:SetSize(width*fontSize*1000,height*fontSize*1000)
+    --panel:SetSize(sizex, sizey)
+    
+    fontSize = fontSize or 4
+    infoFont = infoFont or "Default"
+    surface.SetFont(infoFont)
+    local FontY = select(2, surface.GetTextSize("I"))
     
     function panel:SizeX()
-        local x,y = self:GetSize()
-        return x
+        return select(1, self:GetSize())
     end
 
     function panel:SizeY()
-        local x,y = self:GetSize()
-        return y
+        return select(2, self:GetSize())
     end
+
+    function panel:returnedinfo()
+        return OverdoneServers:TextWrap(isfunction(info) and info() or (isstring(info) and info or "Info here"), infoFont, .9*panel:SizeX()/fontSize)
+    end 
 
     function panel:SetBGColor(color)
         self._BGColor = IsColor(color) and color or nil
@@ -277,53 +294,100 @@ function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, 
     function panel:GetBGColor(color)
         return self._BGColor
     end
+    function panel:PPPosX()
+        return panel:SizeX()/2 - (panel:SizeX()/fontSize)/2
+    end
+    --PPPosY = 0
+    function panel:PPSizeX()
+        return panel:SizeX()/fontSize
+    end
+    function panel:PPSizeY()
+        return panel:SizeY()/fontSize
+    end
+
+    function panel:SetTitle(text)
+        title = text
+    end
+
+    function panel:GetTitle()
+        return title
+    end
+
+    function panel:SetTitleFont(font)
+        titleFont = font
+    end
+
+    function panel:GetTitle()
+        return titleFont
+    end
+
+    function panel:SetInfoFont(v)
+        info = v
+    end
+
+    function panel:GetInfoFont()
+        return info
+    end
+
+    function panel:SetInfoFont(font)
+        infoFont = font
+    end
+
+    function panel:GetInfoFont()
+        return infoFont
+    end
 
     local top = panel:Add("Panel")
     function top:Paint(w,h)
-        self:SetSize(panel:SizeX(), panel:SizeY()/2)
+        self:SetPos(panel:PPPosX(), 0)
+        self:SetSize(panel:PPSizeX(), panel:PPSizeY()/2)
 
-        draw.RoundedBox(ScrH()*0.04, 0,0, w,h, panel._BGColor or Color(75, 75, 75, 200))
+        draw.RoundedBox(panel:PPSizeY()/12, 0,0, w,h, panel._BGColor or Color(75, 75, 75, 255))
     end
 
     local bottom = panel:Add("Panel")
     function bottom:Paint(w,h)
-        self:SetPos(0, panel:SizeY()/2)
-        self:SetSize(panel:SizeX(), panel:SizeY()/2)
+        self:SetPos(panel:PPPosX(), panel:PPSizeY()/2)
+        self:SetSize(panel:PPSizeX(), panel:PPSizeY()/2)
     end
     
     local arrow = bottom:Add("DSprite")
     arrow._DefPaint = arrow.Paint
-    arrow:SetMaterial(Material("overdone_servers/os_library/panels/hover_panel_arrow.png", "UnlitGeneric"))
+    arrow:SetMaterial(arrowmat)
     function arrow:Paint(w,h)
         self:_DefPaint(w,h)
-        local x,y = panel:SizeX()*.65, panel:SizeY()*.3
-        self:SetSize(x,y)
-        self:SetPos(panel:SizeX()*.5, y/2)
-        self:SetColor(panel._BGColor or Color(75, 75, 75, 200))
+        self:SetPos(panel:PPSizeX()/2, panel:PPSizeY()/4)
+        self:SetSize(panel:PPSizeX()/2, panel:PPSizeY()/2)
+        self:SetColor(panel._BGColor or Color(75, 75, 75, 255))
     end
 	
 	local titlepan = panel:Add("Panel")    
 	function titlepan:Paint(w,h)
-        --draw.RoundedBox(ScrH()*0.04, 0,0, w,h, panel._BGColor or Color(75, 75, 75, 200))
-        self:SetPos(0, 0)
-        self:SetSize(panel:SizeX(), 2*panel:SizeY()/10)
-		draw.SimpleText(title or "Title here", "DermaLarge", w/2, h/2, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 200), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        local col = Color(25*((255-panel._BGColor.a)/255), 0.1*panel._BGColor.a + 25, 0.1*panel._BGColor.a + 25, panel._BGColor.a) or Color(50, 75, 150, 255)
+        draw.RoundedBox(panel:PPSizeY()/12, 0,0, w,h, col)
+        draw.RoundedBox(0, 0,h/2, w,h/2, col)
+        self:SetPos(panel:PPPosX(), 0)
+        self:SetSize(panel:PPSizeX(), panel:PPSizeY()*(1/2)*(1/3))
+		draw.SimpleText(title or "Title here", titleFont or "Default", w/2, h/2, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 	
 	local infopan = panel:Add("Panel")
     local breaks = 0
-    local lastchar = ""
-    for _,c in ipairs(string.Explode("",info)) do
-        if c == "\n" then
-            breaks = breaks + 1
+    timer.Simple(0, function()
+        local lastchar = ""
+        for _,c in ipairs(string.Explode("",panel:returnedinfo())) do
+            if c == "\n" then
+                breaks = breaks + 1
+            end
+            lastchar = c
         end
-        lastchar = c
-    end
+    end)
+
 	function infopan:Paint(w,h)
-        --draw.RoundedBox(ScrH()*0.04, 0,0, w,h, panel._BGColor or Color(75, 75, 75, 200))
-        self:SetPos(0, 2*panel:SizeY()/10)
-        self:SetSize(panel:SizeX(), 3*panel:SizeY()/10)
-		draw.DrawText(info or "Info here", "Trebuchet24", w/2, h/2 - breaks*panel:SizeY()/30, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 200), TEXT_ALIGN_CENTER)
+        --draw.RoundedBox(ScrH()*0.04, 0,0, w,h, Color(75, 150, 75, 200))
+        self:SetPos(panel:PPPosX(), panel:PPSizeY()*(1/2)*(1/3))
+        self:SetSize(panel:PPSizeX(), panel:PPSizeY()*(1/2)*(2/3))
+		draw.DrawText(panel:returnedinfo(), infoFont, w/2, h/2 - breaks*FontY*0.61, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 255), TEXT_ALIGN_CENTER)
     end
 
     return panel
