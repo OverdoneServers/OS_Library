@@ -31,9 +31,13 @@ local scale = 0
 local ReachDistanceDefault = 71
 
 -- Helper functions
-
 local function getCursorPos(pnl)
-	local p = util.IntersectRayWithPlane(LocalPlayer():EyePos(), LocalPlayer():GetAimVector(), origin, normal)
+	local calcView = OverdoneServers.CalcView and 
+		{origin = OverdoneServers.CalcView.origin, angles = OverdoneServers.CalcView.angles:Forward()}
+			or
+		{origin = LocalPlayer():EyePos(), angles = LocalPlayer():GetAimVector()}
+	
+	local p = util.IntersectRayWithPlane(calcView.origin, calcView.angles, origin, normal)
 
 	-- if there wasn't an intersection, don't calculate anything.
 	if not p then return end

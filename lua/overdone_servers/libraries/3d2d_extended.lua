@@ -170,7 +170,8 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
         if not IsValid(pan) or (pan.OS_3D_Ent != nil and not IsValid(pan.OS_3D_Ent)) then table.insert(toRemove, i)
         else table.insert(toRender, pan) end
     end
-    
+
+    local orderedRender = {}
     for _,p in ipairs(toRender) do
         local scale = isfunction(p.OS_3D_Scale) and p.OS_3D_Scale(p) or p.OS_3D_Scale
 
@@ -209,6 +210,14 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
         p.OS_3D_LockEntAng = isangle(p.OS_3D_LockEntAng) and p.OS_3D_LockEntAng or (p.OS_3D_LockEntAng == true and ang) or nil
         ang = p.OS_3D_LockEntAng or ang
 
+        local playerPos = OverdoneServers.CalcView and OverdoneServers.CalcView.origin or LocalPlayer():EyePos()
+
+        table.insert(orderedRender, playerPos:DistToSqr(pos), {p, pos, ang, scale})
+    end
+
+    for _,t in SortedPairs(orderedRender, true) do
+        local p,pos,ang,scale = t[1], t[2], t[3], t[4]
+
         --render.DrawLine(pos, pos + (ang:Forward() * 30), Color(255, 0, 0))
         --render.DrawLine(pos, pos + (ang:Right() * 30), Color(0, 0, 255))
         --render.DrawLine(pos, pos + (ang:Up() * 30), Color(0, 255, 0))
@@ -217,18 +226,8 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
         --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Right() * 30), Color(0, 0, 255))
         --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Up() * 30), Color(0, 255, 0))
 
-        --[[(p.OS_3D_CenterPanel and GetAngleOffset(p.OS_3D_Ent:GetAngles(), centerOffset) or Vector(0,0,0)) + (
-            (IsValid(p.OS_3D_Ent) and 
-                GetAngleOffset(p.OS_3D_Ent:GetAngles(), Vector((p.OS_3D_Ent:OBBMaxs().x - p.OS_3D_Ent:OBBMins().x) * (p.OS_3D_Pos.x), (p.OS_3D_Ent:OBBMaxs().y - p.OS_3D_Ent:OBBMins().y) * (p.OS_3D_Pos.y), (p.OS_3D_Ent:OBBMaxs().z - p.OS_3D_Ent:OBBMins().z) * (p.OS_3D_Pos.z + .5))) + p.OS_3D_Ent:GetPos() or 
-                (p.OS_3D_LockEntPos and 
-                    (GetAngleOffset(p.OS_3D_Ent:GetAngles(), p.OS_3D_Pos) + p.OS_3D_Ent:GetPos()) or 
-                    (p.OS_3D_Ent:GetPos() + p.OS_3D_Pos)))
-            ))
-                     
-            or (p.OS_3D_CenterPanel and (GetAngleOffset(p.OS_3D_Ang, centerOffset)) or Vector(0,0,0)) + p.OS_3D_Pos,]]
-
         vgui.Start3D2D(pos, ang, scale or 1)
-		p:Paint3D2D()
+		    p:Paint3D2D()
 	    vgui.End3D2D()
     end
     
