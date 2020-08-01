@@ -5,5 +5,6 @@ OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/color_helper.lu
 OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/text_wrap.lua")
 OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/window_buttons.lua")
 OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/visual_effects.lua")
+OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/svg_loader.lua")
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/easingfunctions.lua")

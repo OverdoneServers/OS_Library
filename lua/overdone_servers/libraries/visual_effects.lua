@@ -30,7 +30,7 @@ function OverdoneServers.VisualEffects:BlinkClose(speed)
     function top:Paint(w,h)
         draw.RoundedBox(0, 0, 0, w, h, Color(0,0,0,((self:GetY())/(ScrH/2))*255))
         self:SetSize(ScrW, Lerp(RealFrameTime()*2*speed*(1+self:GetY()*0.008), self:GetY(), ScrH/2 + 100))
-        if self:GetY() >= ScrH/2 then eyesClosed = true end
+        if self:GetY() >= ScrH*0.55 then eyesClosed = true end
     end
 
     local bottom = isBlinking:Add("Panel")
@@ -46,7 +46,7 @@ function OverdoneServers.VisualEffects:BlinkClose(speed)
     function bottom:Paint(w,h)
         draw.RoundedBox(0, 0, 0, w, h, Color(0,0,0,((ScrH-self:GetY())/(ScrH/2))*255))
         self:SetPos(0, Lerp(RealFrameTime()*2*speed*(1+(ScrH - self:GetY())*0.008), self:GetY(), ScrH/2 - 100))
-        if self:GetY() <= ScrH/2 then eyesClosed = true end
+        if self:GetY() <= ScrH*0.45 then eyesClosed = true end
     end
 end
 
@@ -76,9 +76,10 @@ function OverdoneServers.VisualEffects:Blink(speed, func, delay)
     delay = delay or .25
     eyesClosed = false
     OverdoneServers.VisualEffects:BlinkClose(speed)
+    local completed = false
     local fail = 5 --(Seconds until eyes are forced open)
     timer.Simple(fail, function()
-        if timer.Exists("OverdoneServers:VisualEffects:Blink") then
+        if not completed then
             print("Function failed to run function while eyes were closed after " .. fail .. " seconds")
             OverdoneServers.VisualEffects:BlinkOpen(speed)
             timer.Remove("OverdoneServers:VisualEffects:Blink")
@@ -87,8 +88,20 @@ function OverdoneServers.VisualEffects:Blink(speed, func, delay)
     timer.Create("OverdoneServers:VisualEffects:Blink", 0.01, fail*100, function()
         if eyesClosed then
             func()
+            completed = true
             timer.Simple(delay, function() OverdoneServers.VisualEffects:BlinkOpen(speed) end)
             timer.Remove("OverdoneServers:VisualEffects:Blink")
         end
     end)
+end
+
+function OverdoneServers.VisualEffects:Crosshair(size)
+    local panel = vgui.Create("Panel")
+    panel:SetSize(ScrW(),ScrH())
+    panel:SetPos(0,0)
+
+    function panel:Paint(w,h)
+        draw.RoundedBox(ScrH()*0.001*size/2, ScrW()/2 - ScrH()*0.001*size/2, ScrH()/2 - ScrH()*0.001*size/2, ScrH()*0.001*size, ScrH()*0.001*size, Color(255,255,255,255))
+    end
+    return panel
 end
