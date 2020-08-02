@@ -8,3 +8,4 @@ OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/visual_effects.
 OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/svg_loader.lua")
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/easingfunctions.lua")
+OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/better_enums.lua")

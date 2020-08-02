@@ -88,11 +88,25 @@ function OverdoneServers.SVG:LoadSVG(path)
     return html
 end
 
+local function ConvertSVGMatToColoredMat(material)
+		local matdata =
+		{
+			["$basetexture"] = material:GetName(),
+			--["$basetexturetransform"]="center .5 .5 scale ".. material:Width()/select(1, self:GetSize()) .." ".. material:Height()/select(2, self:GetSize()) .." rotate 0 translate 0 0",
+			["$translucent"] = 1,
+			["$vertexcolor"] = 1, //Coloring
+			["$vertexalpha"] = 1, //Alpha channel
+		}
+
+		return CreateMaterial("overdoneservers_" .. string.Replace(material:GetName(), "__vgui_texture_", ""), "UnlitGeneric", matdata)
+end
+
 function OverdoneServers.SVG:RenderSVG(spritePanel)
     if spritePanel._SVG_RenderStart == nil then return end
     if spritePanel._SVG_RenderStart + 1 > RealTime() then
         if IsValid(spritePanel._SVG_HTML_Panel) then
-            spritePanel:SetMaterial(spritePanel._SVG_HTML_Panel:GetHTMLMaterial())
+            local mat = spritePanel._SVG_HTML_Panel:GetHTMLMaterial()
+            spritePanel:SetMaterial(mat != nil and ConvertSVGMatToColoredMat(mat) or nil)
         end
     else
         if IsValid(spritePanel._SVG_HTML_Panel) then
@@ -125,3 +139,23 @@ function OverdoneServers.SVG:SetSVG(spritePanel, path)
         if self.PostPaint then self:PostPaint(w,h) end
     end
 end
+
+function OverdoneServers.SVG:GetMaterial(path, callback)
+    if not isfunction(callback) then return end
+    local svg = self:LoadSVG(path)
+    timer.Simple(1, function()
+        timer.Simple(.5, function()
+            if IsValid(svg) then svg:Remove() end
+        end)
+        callback(ConvertSVGMatToColoredMat(svg:GetHTMLMaterial()))
+    end)
+end
+
+OverdoneServers.SVG:GetMaterial([[
+<svg width="1" height="1" viewBox="0 0 1 1" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1" height="1" fill="white"/>
+</svg>
+]], function(material)
+    if material:IsError() then ErrorNoHalt("Overdone Servers: Error building white square!") end
+    OverdoneServers.SVG.WhiteSquare = material
+end)
