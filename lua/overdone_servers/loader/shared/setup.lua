@@ -147,8 +147,10 @@ function OverdoneServers:LoadFont(f, fontLocation)
     self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
     if SERVER then resource.AddSingleFile("resource/fonts/" .. f[2]) end
     if CLIENT then
-        if f[3].size != nil then
-            f[3].size = ScreenScale(f[3].size)
+        if f[3].noScale != true then
+            if f[3].size != nil then
+                f[3].size = ScreenScale(f[3].size)
+            end
         end
         surface.CreateFont(fontLocation .. f[1], f[3])
     end

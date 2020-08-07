@@ -12,17 +12,23 @@ end
 
 --Idea: all cards will have an oval with the data inside (what card it is), and the surrounding foreground can be any material you want (card design). This function returns the panel with everything built.
 function OS_Casino:BuildCard(cardBackground, cardData, cardForeground, font, suits)
-    if not OS_Casino:IsValidCard(cardData) then ErrorNoHalt([[
-    ----- OS Casino -----
-    Card data is invalid! Card not built.
-    ]] ..
-    "Suit: " .. (cardData and (tostring(cardData.suit)) or "nil") ..
-    "\nKind: " .. (cardData and (tostring(cardData.kind)) or "nil") .. "\n"
-    .. [[
-    ---------------------
-    ]]) return end
-
-    local suit,kind = cardData.suit,cardData.kind
+    local genBlankCard = false
+    print(cardData)
+    PrintTable(istable(cardData) and cardData or {})
+    if cardData == nil or cardData == 0 then
+        genBlankCard = true
+    else
+        if not OS_Casino:IsValidCard(cardData) then ErrorNoHalt([[
+        ----- OS Casino -----
+        Card data is invalid! Card not built.
+        ]] ..
+        "Suit: " .. (cardData and (tostring(cardData.suit)) or "nil") ..
+        "\nKind: " .. (cardData and (tostring(cardData.kind)) or "nil") .. "\n"
+        .. [[
+        ---------------------
+        ]]) return end
+    end
+    
     font = font or "Default"
     cardBackground = istable(cardBackground) and cardBackground or {cardBackground}
 
@@ -77,28 +83,34 @@ function OS_Casino:BuildCard(cardBackground, cardData, cardForeground, font, sui
 
         local cx, cy = card:GetSize()
         self:SetSize(593*cx/968, 593*cy/968)
-        self:SetPos(cx/2,cy/2)
+        self:SetPos(0,0)
+        --self:SetPos(cx/2,cy/2)
         self._DefPaint(self,w,h)
     end
 
+    local suitKind = nil
+    if not genBlankCard then 
+        local suit,kind = cardData.suit,cardData.kind
 
-    local suitKind = card:Add("DSprite")
+        suitKind = card:Add("DSprite")
 
-    local matData = suits[suit]
+        local matData = suits[suit]
 
-    suitKind:SetMaterial(matData[1])
-    suitKind:SetColor(matData[2])
+        suitKind:SetMaterial(matData[1])
+        suitKind:SetColor(matData[2])
 
-    local kindText = CardKind(kind)
+        local kindText = CardKind(kind)
 
-    suitKind._DefPaint = suitKind.Paint
-    function suitKind:Paint(w,h)
-        local cx, cy = card:GetSize()
-        self:SetSize(3*cx/5, 3*cy/5)
-        self:SetPos(cx/2,cy/2)
+        suitKind._DefPaint = suitKind.Paint
+        function suitKind:Paint(w,h)
+            local cx, cy = card:GetSize()
+            self:SetSize(3*cx/5, 3*cy/5)
+            self:SetPos(0,0)
+            --self:SetPos(cx/2,cy/2)
 
-        self._DefPaint(self,w,h)
-        draw.SimpleText(kindText, font, 0, 0, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            self._DefPaint(self,w,h)
+            draw.SimpleText(kindText, font, 0, 0, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
     end
 
     local foreground = card:Add("DSprite")
@@ -109,7 +121,8 @@ function OS_Casino:BuildCard(cardBackground, cardData, cardForeground, font, sui
     function foreground:Paint(w,h)
         local cx, cy = card:GetSize()
         self:SetSize(cx, cy)
-        self:SetPos(cx/2,cy/2)
+        --self:SetPos(cx/2,cy/2)
+        self:SetPos(0,0)
 
         self._DefPaint(self,w,h)
     end

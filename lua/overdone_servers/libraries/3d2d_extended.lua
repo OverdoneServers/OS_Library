@@ -57,6 +57,47 @@ function OverdoneServers.DPanels3D:CreateButton(parent, is3D)
         return self.BorderColor
     end
 
+    function but:SetMaterial(material)
+        but.sprite:SetMaterial(material)
+    end
+
+    function but:GetMaterial()
+        return but.sprite:GetMaterial()
+    end
+
+    function but:SetRotation(i)
+        but.sprite:SetRotation(i)
+    end
+
+    function but:GetRotation()
+        return but.sprite:GetRotation()
+    end
+
+    but._DefSetSize = but._DefSetSize or but.SetSize
+
+    function but:SetSize(x,y)
+        if IsValid(but.sprite) then
+            local min = math.min(x,y)
+            but.sprite:SetSize(min,min)
+            but.sprite:SetPos(x/2, y/2)
+        end
+        self._DefSetSize(self, x,y)
+    end
+
+    function but:SetMaterialScale(scale)
+        self._MaterialScale = scale
+        
+        local x,y = self:GetSize()
+
+        local min = math.min(x,y)
+        but.sprite:SetSize(min*scale,min*scale)
+        but.sprite:SetPos(x/2, y/2)
+    end
+
+    function but:GetMaterialScale()
+        return self._MaterialScale
+    end
+
     but.ClickAnimationMultiplier = 2
 
     local clickAnimationTimeMax = 2
@@ -85,12 +126,25 @@ function OverdoneServers.DPanels3D:CreateButton(parent, is3D)
         draw.RoundedBox(0,0,0,w,h, Color(0,0,0,100))
         draw.RoundedBox(0,0,0,w,h, OverdoneServers:VectorToColor(self._curColor))
 
-        OverdoneServers.M2D.OutlinedBox(5, 0, 0, w, h, ColorAlpha(self.BorderColor, self.hoverBorder))
+        OverdoneServers.M2D.OutlinedBox(math.min(but:GetSize())*0.05, 0, 0, w, h, ColorAlpha(self.BorderColor, self.hoverBorder))
     end
 
     function but:RenderClick()
         self._clicking = true
         self._curColor = OverdoneServers:ColorToVector(OverdoneServers:DarkenColor(self.Color, .75))
+    end
+
+    but.sprite = but:Add("DSprite")
+    
+    but.sprite._DefPaint = but.sprite._DefPaint or but.sprite.Paint
+
+    function but.sprite:Paint(w,h)
+        if self.PrePaint then self:PrePaint(w,h) end
+
+        self._DefPaint(self, w,h)
+        
+        if self.OnPaint then self:OnPaint(w,h) end
+        if self.PostPaint then self:PostPaint(w,h) end
     end
 
     return but
@@ -162,13 +216,30 @@ local function GetAngleOffset(ang, offset)
 end
 ]]
 
+local renderOnScreen = false 
+hook.Add("Move","OS:TEST", function() 
+    if input.WasKeyPressed(KEY_HOME) then
+        renderOnScreen = not renderOnScreen
+    end
+end)
+
+hook.Add("VehicleMove","OS:TEST", function() 
+    if input.WasKeyPressed(KEY_HOME) then
+        renderOnScreen = not renderOnScreen
+    end
+end)
+
 hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
     local toRender = {}
     local toRemove = {}
     for i = 1, #OverdoneServers.DPanels3D, 1 do
         local pan = OverdoneServers.DPanels3D[i]
-        if not IsValid(pan) or (pan.OS_3D_Ent != nil and not IsValid(pan.OS_3D_Ent)) then table.insert(toRemove, i)
-        else table.insert(toRender, pan) end
+        if not IsValid(pan) or (pan.OS_3D_Ent != nil and not IsValid(pan.OS_3D_Ent)) then
+            table.insert(toRemove, i) 
+            LocalPlayer():ChatPrint("REMOVED PANEL!! " .. (not IsValid(pan) and "Panel invalid" or "Entity removed"))
+        else
+            table.insert(toRender, pan)
+        end
     end
 
     local orderedRender = {}
@@ -189,7 +260,7 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
         ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Up(), returnedAng.z or 0)
         
         local returnedPos = isfunction(p.OS_3D_Pos) and p.OS_3D_Pos(p.OS_3D_Ent) or p.OS_3D_Pos
-        local pos = p.OS_3D_PosOffset
+        local pos = ang:Forward()*p.OS_3D_PosOffset.x + ang:Right()*p.OS_3D_PosOffset.y + ang:Up()*p.OS_3D_PosOffset.z
             + (p.OS_3D_Ent and
                 p.OS_3D_Ent:LocalToWorld(returnedPos)
                 - (p.OS_3D_CenterPanel and
@@ -225,10 +296,17 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
         --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Forward() * 30), Color(255, 0, 0))
         --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Right() * 30), Color(0, 0, 255))
         --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Up() * 30), Color(0, 255, 0))
+        --if(p:GetName() == "TableInfoPanel") then print(pos) end
 
-        vgui.Start3D2D(pos, ang, scale or 1)
-		    p:Paint3D2D()
-	    vgui.End3D2D()
+        if not renderOnScreen then
+            vgui.Start3D2D(pos, ang, scale or 1)
+		        p:Paint3D2D()
+	        vgui.End3D2D()
+        else
+            cam.Start2D()
+                p:Paint3D2D()
+            cam.End2D()
+        end
     end
     
     for _,pID in ipairs(toRemove) do
@@ -248,12 +326,11 @@ function OverdoneServers.DPanels3D:CreateFloatingPanel(bob, bobSpeed, bobAmplitu
     offset = offset or math.Rand(1, 1000)
 
     local panel = vgui.Create("DPanel")
-    panel:SetSize(width,height)
     panel.OS_3D_FollowPlayer = followplayer
     BuildButtonClickAndHoverEvent(panel, true)
 
     function panel:Paint(w,h)
-        panel.OS_3D_PosOffset = Vector(0, 0, bobAmplitude * math.sin(bobSpeed * CurTime() + offset))
+        panel.OS_3D_PosOffset = Vector(0, bobAmplitude * math.sin(bobSpeed * CurTime() + offset), 0)
         --draw.RoundedBox(0, 0,0, w,h, Color(150, 75, 75, 50))
         --draw.SimpleText("test", "CloseCaption_Bold", 100, 100, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
         --print(select(1,surface.GetTextSize("WWWWWWWWWWWWWWWWWWWWWWW")))
@@ -264,7 +341,7 @@ end
 local arrowmat = Material("overdone_servers/os_library/panels/hover_panel_arrow.png", "UnlitGeneric")
 
 function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, offset, title, info, fontSize, titleFont, infoFont)
-    print(fontSize)
+    --print(fontSize)
     local panel = self:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, offset)
     --panel:SetSize(width*fontSize*1000,height*fontSize*1000)
     --panel:SetSize(sizex, sizey)
@@ -273,6 +350,9 @@ function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, 
     infoFont = infoFont or "Default"
     surface.SetFont(infoFont)
     local FontY = select(2, surface.GetTextSize("I"))
+
+    surface.SetFont(titleFont)
+    local TitleFontY = select(2, surface.GetTextSize("I"))
     
     function panel:SizeX()
         return select(1, self:GetSize())
@@ -367,14 +447,14 @@ function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, 
         draw.RoundedBox(0, 0,h/2, w,h/2, col)
         self:SetPos(panel:PPPosX(), 0)
         self:SetSize(panel:PPSizeX(), panel:PPSizeY()*(1/2)*(1/3))
-		draw.SimpleText(title or "Title here", titleFont or "Default", w/2, h/2, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.SimpleText(title or "Title here", titleFont or "Default", w/2, h/2 + 1.25*TitleFontY/2, Color(255,255,255,panel._BGColor.a) or Color(75, 75, 75, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
     end
 	
 	local infopan = panel:Add("Panel")
     local breaks = 0
     timer.Simple(0, function()
         local lastchar = ""
-        for _,c in ipairs(string.Explode("",panel:returnedinfo())) do
+        for _,c in ipairs(string.Explode("", panel.returnedinfo != nil and panel:returnedinfo() or "")) do
             if c == "\n" then
                 breaks = breaks + 1
             end

@@ -19,8 +19,9 @@ MODULE.FilesToLoad = {
         {"CardFace", "croissant-one.ttf",
             {
                 font = "Croissant One",
-                size = 20, //Max around 65
+                size = 150,
                 weight = 500,
+                noScale = true
             }
         },
     }

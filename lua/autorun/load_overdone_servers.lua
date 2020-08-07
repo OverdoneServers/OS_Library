@@ -14,6 +14,8 @@ include(OverdoneServers.LoaderDir .. "/shared/setup.lua")
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_libs.lua")
 
+OverdoneServers:LoadClientFile(OverdoneServers.LoaderDir .. "/client/materials.lua")
+
 if SERVER then
     include(OverdoneServers.LoaderDir .. "/server/load_mysql.lua")
     include(OverdoneServers.LoaderDir .. "/server/load_steamapi.lua")

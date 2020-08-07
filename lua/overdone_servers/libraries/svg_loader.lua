@@ -143,11 +143,26 @@ end
 function OverdoneServers.SVG:GetMaterial(path, callback)
     if not isfunction(callback) then return end
     local svg = self:LoadSVG(path)
-    timer.Simple(1, function()
-        timer.Simple(.5, function()
-            if IsValid(svg) then svg:Remove() end
-        end)
-        callback(ConvertSVGMatToColoredMat(svg:GetHTMLMaterial()))
+    local timerName = "OverdoneServers.SVG:GetMaterial:" .. tostring(callback) .. ":"
+    
+    local success = false
+    timer.Create(timerName .. "A", .1, 20, function()
+        if IsValid(svg) then
+            local mat = svg:GetHTMLMaterial()
+            if mat != nil then
+                callback(ConvertSVGMatToColoredMat(mat))
+                success = true
+                timer.Remove(timerName .. "A")
+            end
+        end
+    end)
+
+    timer.Create(timerName .. "B", 2.1, 1, function()
+        if IsValid(svg) then svg:Remove() end
+        if not success then
+            ErrorNoHalt("OverdoneServers: Error Generating SVG Material.")
+            return OverdoneServers.SVG.Error
+        end
     end)
 end
 
@@ -159,3 +174,5 @@ OverdoneServers.SVG:GetMaterial([[
     if material:IsError() then ErrorNoHalt("Overdone Servers: Error building white square!") end
     OverdoneServers.SVG.WhiteSquare = material
 end)
+
+OverdoneServers.SVG.Error = Material("") //aka missing texture
