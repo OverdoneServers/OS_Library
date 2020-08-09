@@ -151,45 +151,44 @@ if CLIENT then
             local numType = ""
             if num < 60 then
                 num = math.floor(num)
-                numType = "s"
+                numType = "s" //Seconds
             elseif num < 60*60 then
                 num = math.floor(num/60)
-                numType = "m"
+                numType = "m" //Minutes
             elseif num < 60*60*24 then
                 num = math.floor(num/60/60)
-                numType = "h"
+                numType = "h" //Hours
             elseif num < 60*60*24*7 then
                 num = math.floor(num/60/60/24)
-                numType = "d"
+                numType = "d" //Days
             elseif num < 60*60*24*7*52.1429 then
                 num = math.floor(num/60/60/24/7)
-                numType = "w"
+                numType = "w" //Weeks
             elseif num < 60*60*24*7*52.1429*10 then
                 num = math.floor(num/60/60/24/7/52.1429)
-                numType = "y"
+                numType = "y" //Years
             elseif num < 60*60*24*7*52.1429*10*10 then
                 num = math.floor(num/60/60/24/7/52.1429/10)
-                numType = "D"
+                numType = "D" //Decades ( ͡° ͜ʖ ͡°)
             elseif num < 60*60*24*7*52.1429*10*10*10 then
                 num = math.floor(num/60/60/24/7/52.1429/10/10)
-                numType = "C"
+                numType = "C" //Centuries ( ͡° ͜ʖ ͡°)
             elseif num < 60*60*24*7*52.1429*10*10*10*1000 then
                 num = math.floor(num/60/60/24/7/52.1429/10/10/10)
-                numType = "M"
+                numType = "M" //Millenia ( ͡° ͜ʖ ͡°)
             elseif num < 60*60*24*7*52.1429*10*10*10*1000*10 then
                 num = math.floor(num/60/60/24/7/52.1429/10/10/10/1000)
-                numType = "A"
+                numType = "A" //Ages ( ͡° ͜ʖ ͡°)
             elseif num < 60*60*24*7*52.1429*10*10*10*1000*10*10 then
                 num = math.floor(num/60/60/24/7/52.1429/10/10/10/1000/10)
-                numType = "Ep"
+                numType = "Ep" //Epochs ( ͡° ͜ʖ ͡°)
             elseif num < 60*60*24*7*52.1429*10*10*10*1000*10*10*10 then
                 num = math.floor(num/60/60/24/7/52.1429/10/10/10/1000/10/10)
-                numType = "Er"
+                numType = "Er" //Eras ( ͡° ͜ʖ ͡°)
             else
                 num = math.floor(num/60/60/24/7/52.1429/10/10/10/1000/10/10/10)
-                numType = "Eo"
+                numType = "Eo" //Eons ( ͡° ͜ʖ ͡°)
             end
-            --( ͡° ͜ʖ ͡°)
 
             local str = string.Split(string.format("%02d", tostring(num)), "")
 
