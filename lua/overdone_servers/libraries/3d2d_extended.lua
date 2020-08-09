@@ -331,10 +331,19 @@ function OverdoneServers.DPanels3D:CreateFloatingPanel(bob, bobSpeed, bobAmplitu
 
     function panel:Paint(w,h)
         panel.OS_3D_PosOffset = Vector(0, bobAmplitude * math.sin(bobSpeed * CurTime() + offset), 0)
+        --LocalPlayer():ChatPrint(tostring(panel.OS_3D_PosOffset))
         --draw.RoundedBox(0, 0,0, w,h, Color(150, 75, 75, 50))
         --draw.SimpleText("test", "CloseCaption_Bold", 100, 100, Color( 255, 255, 255, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
         --print(select(1,surface.GetTextSize("WWWWWWWWWWWWWWWWWWWWWWW")))
     end
+
+    --[[timer.Create("FloatingPanel" .. panel, 0, 0, function()
+        if not IsValid(panel) then
+            timer.Remove("FloatingPanel" .. panel)
+        else
+            --panel.OS_3D_PosOffset = Vector(0, bobAmplitude * math.sin(bobSpeed * CurTime() + offset), 0)
+        end
+    end)]]
     return panel
 end
 

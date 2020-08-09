@@ -105,3 +105,20 @@ function OverdoneServers.VisualEffects:Crosshair(size)
     end
     return panel
 end
+
+function OverdoneServers.VisualEffects:Poof(pos, size)
+    --[[local effectdata = EffectData()
+	effectdata:SetOrigin(pos)
+	effectdata:SetScale(size)
+    for i = 0, 10 do]]
+		ParticleEffect("generic_smoke", pos, Angle(0,0,0))
+    --end
+end
+
+net.Receive("OverdoneServers:VisualEffects:Poof", function()
+    pos = net.ReadVector()
+    size = net.ReadInt(12)
+    OverdoneServers.VisualEffects:Poof(pos, size)
+end)
+
+--PrintTable(list.Get("EffectType"))
