@@ -372,7 +372,7 @@ function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, 
     end
 
     function panel:returnedinfo()
-        return OverdoneServers:TextWrap(isfunction(info) and info() or (isstring(info) and info or "Info here"), infoFont, .9*panel:SizeX()/fontSize)
+        return OverdoneServers.BetterText:TextWrap(isfunction(info) and info() or (isstring(info) and info or "Info here"), infoFont, .9*panel:SizeX()/fontSize)
     end 
 
     function panel:SetBGColor(color)
