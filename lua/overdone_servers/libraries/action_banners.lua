@@ -43,7 +43,11 @@ ActionBanners.Modules = {
             ["countdown"] = false, //Uses lifetime - timepassed
             ["default_text_color"] = Color(255,255,255),
             ["background_color"] = Color(75,75,75,150),
-            ["max_banners"] = 10
+            ["max_banners"] = 10,
+            ["timer_color"] = Color(200,200,200),
+            ["timer_text_color"] = Color(0,0,0),
+            ["queue_delay"] = 0.01,
+            ["display_by_time"] = false
         }
     }
 }
@@ -65,11 +69,43 @@ OnScreenSizeChange() -- Gets Inital Size
 
 hook.Add("OnScreenSizeChanged", "OverdoneServers:ActionBanners", OnScreenSizeChange)
 
+local function GetNextInLine(module)
+    local queue = OverdoneServers.TableHelper:GetValue(ActionBanners.Modules or {}, module, "banner_queue")
+    local queueDelay = ActionBanners:GetSetting(module, "queue_delay")
+    
+    local bannerPanel = nil
+    for _, data in ipairs(queue or {}) do
+        --print("Comparing", data.waitTime, "and", RealTime() - queueDelay, data.waitTime <= RealTime() - queueDelay)
+        if data.waitTime <= RealTime() - queueDelay then
+            --print("Okay, greater")
+            bannerPanel = data
+        end
+        if bannerPanel != nil then
+            table.remove(queue , 1)
+            for _,d in ipairs(queue) do
+                d.waitTime = RealTime()
+            end
+            break
+        end
+    end
+    
+    return bannerPanel
+end
+
+local GlobalID = 0
+
 local function GetAllBanners(modulee, ignoreHidden)
     local banners = {}
     local bannersLen = 0
     for module ,v in pairs(ActionBanners.Modules or {}) do
         if modulee != nil and modulee != module then continue end
+        local display_by_time = ActionBanners:GetSetting(module, "display_by_time")
+        local nextToShow = GetNextInLine(module)
+        if nextToShow != nil then
+            --nextToShow:Show()
+            OverdoneServers.TableHelper:InsertValue(nextToShow, ActionBanners.Modules, module, "banners")
+            --ActionBanners:UpdateBannerPos()
+        end
 
         if istable(v["banners"]) then
             if ignoreHidden and not ActionBanners:IsVisible(module) then
@@ -81,9 +117,15 @@ local function GetAllBanners(modulee, ignoreHidden)
                     end
                 end
             else
+                local counter = 0
                 for id,panel in pairs(v["banners"]) do
                     if ispanel(panel) and isnumber(panel.init_time) then
-                        banners[panel] = RealTime() - panel.init_time
+                        if display_by_time then
+                            counter = counter + 0.000001
+                            banners[panel] = RealTime() - panel.init_time + counter
+                        else
+                            banners[panel] = panel.GlobalID + RealTime()
+                        end
                         bannersLen = bannersLen + 1
                         if ignoreHidden != nil and not panel:IsVisible() then
                             panel:Show()
@@ -107,7 +149,6 @@ local function BuildActionBannerPanel()
 
     function panel:Paint(w,h)
         local toDraw, toDrawLen = GetAllBanners(nil, true)
-
         local counter = 0
         local modCounter = {}
         for panel, time in SortedPairsByValue(toDraw) do
@@ -145,6 +186,7 @@ local function BuildActionBannerPanel()
 
             panel:SetPos(0, Lerp(panel.animProgress, panel.animStartPos, ypos))
             
+            panel.Rendering = true
             panel.isOld = panel.isOld or true
         end
     end
@@ -163,13 +205,10 @@ function ActionBanners:UpdateBannerPos()
     end
 end
 
-local function CreateBanner(module, topText, bottomText)
+function ActionBanners:CreateBanner(module, topText, bottomText)
     local panel = vgui.Create("Panel", IsValid(ActionBanners.Panel) and ActionBanners.Panel or BuildActionBannerPanel())
-    panel:SetPos(0,ScrH()-1)
-    panel.init_time = RealTime()
-    panel:SetSize(ActionBanners:GetSetting(module, "width")*ScrW(), (55/1080)*ScrH())
-
     panel.DefRemove = panel.Remove
+    panel.GlobalID = GlobalID
 
     function panel:Remove()
         if self.Removing then return end
@@ -178,11 +217,16 @@ local function CreateBanner(module, topText, bottomText)
         self.Removing = true
     end
 
-    panel.MaxX = panel:GetSize()
+    panel:SetPos(0,ScrH()-1)
+    panel.init_time = RealTime()
+    panel:SetSize(1, (55/1080)*ScrH())
+    panel.MaxX = ActionBanners:GetSetting(module, "width")*ScrW()
+
     panel.TopText, panel.BottomText = topText, bottomText
     panel.StartX = 1
 
     function panel:Paint(w,h)
+        if not self.Rendering then return end
         local widthSetting = tonumber(tostring(ActionBanners:GetSetting(module, "width")*ScrW())) //You have to do "to str to num" this cuz some random coding language bug most langs have. (https://codea.io/talk/discussion/8728/0-3-does-not-equal-0-3-codea-bug-lua-bug-ambush-bug)
         if widthSetting != self.MaxX then //Width was changed after panels were created!!!
             self._timepassed = nil
@@ -235,7 +279,7 @@ local function CreateBanner(module, topText, bottomText)
             OverdoneServers.BetterText:DrawText(self.BottomText, "OverdoneServers:ActionBanners:Text", mathh*0.1, h/2, defaultTextColor)
         end
 
-        draw.RoundedBox(0,w-mathh,0,mathh*1.1,h,Color(200,200,200,255))
+        draw.RoundedBox(0,w-mathh,0,mathh*1.1,h,ActionBanners:GetSetting(module, "timer_color"))
         local lifetime = ActionBanners:GetSetting(module, "lifetime")
         local num = (RealTime() - self.init_time)
 
@@ -286,9 +330,11 @@ local function CreateBanner(module, topText, bottomText)
 
         local str = string.Split(string.format("%02d", tostring(num)), "")
 
-        draw.SimpleText(str[1], "OverdoneServers:ActionBanners:TimePassed", (w-mathh) + (mathh/2), 0, Color(0, 0, 0, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
-        draw.SimpleText(str[2], "OverdoneServers:ActionBanners:TimePassed", (w-mathh) + (mathh/2), h*.3, Color(0, 0, 0, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
-        draw.SimpleText(numType, "OverdoneServers:ActionBanners:TimePassed:Small", (w-mathh) + (mathh/2), h*.6, Color(0, 0, 0, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        local timer_text_color = ActionBanners:GetSetting(module, "timer_text_color")
+
+        draw.SimpleText(str[1], "OverdoneServers:ActionBanners:TimePassed", (w-mathh) + (mathh/2), 0, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText(str[2], "OverdoneServers:ActionBanners:TimePassed", (w-mathh) + (mathh/2), h*.3, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText(numType, "OverdoneServers:ActionBanners:TimePassed:Small", (w-mathh) + (mathh/2), h*.6, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
         
         if not self.Removing and endOfLife then
             self:Remove()
@@ -334,22 +380,23 @@ function ActionBanners:AddBanner(module, topText, bottomText)
     if module == nil then return nil end
     topText = istable(topText) and topText or {topText}
     bottomText = istable(bottomText) and bottomText or {bottomText}
-
-    ActionBanners.Modules[module] = ActionBanners.Modules[module] or {}
-    ActionBanners.Modules[module]["banners"] = ActionBanners.Modules[module]["banners"] or {}
-
-    local panel = CreateBanner(module, topText, bottomText)
-    panel.module = module
     
-    local id = table.insert(ActionBanners.Modules[module]["banners"], panel)
+    GlobalID = GlobalID - 1
+    local panel = ActionBanners:CreateBanner(module, topText, bottomText)
+    panel.module = module
+    panel.waitTime = RealTime()
+    panel:Hide()
 
-    ActionBanners:UpdateBannerPos()
+    OverdoneServers.TableHelper:InsertValue(panel, ActionBanners.Modules, module, "banner_queue")
+    --Once the panel is created and added to the queue, the queue has its own function that will auto update the client's screen, which will add the next banner and remove the top banner (if max banners are shown)
 
-    return id, panel
+    --ActionBanners:UpdateBannerPos()
+
+    return GlobalID, panel
 end
 
 function ActionBanners:RemoveBanner(module, id)
-    local mod = ActionBanners.Modules[module]
+    --[[local mod = ActionBanners.Modules[module]
     if istable(mod) then
         local banners = mod["banners"]
         if istable(banners) then
@@ -363,10 +410,13 @@ function ActionBanners:RemoveBanner(module, id)
             end
         end
     end
-    return false
+    return false]]
+
+    
 end
 
-function ActionBanners:RemoveAll(module)
+function ActionBanners:RemoveAll(module, clearQueue)
+    if clearQueue == nil then clearQueue = true end //TODO: make this clear the queue!!!
     for banner,_ in pairs(self:GetBanners(module)) do
         if IsValid(banner) then
             banner:Remove()
@@ -399,7 +449,14 @@ function ActionBanners:SetBanner(module, id, topText, bottomText)
     end
     return false
 end
---[[
+
+ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
+ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
+ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
+ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
+ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
+ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
+
 timer.Simple(  3+1, function() ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye") end)
 timer.Simple(  3+2, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
 timer.Simple(3+2.1, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
@@ -446,10 +503,10 @@ timer.Simple(8, function()
     ActionBanners:SetSetting("test", "countdown", true)
 end)
 timer.Simple(9, function()
-    --ActionBanners:Hide("test")
+    ActionBanners:Hide("test")
 end)
 timer.Simple(12, function()
-    --ActionBanners:Show("test")
+    ActionBanners:Show("test")
 end)
 timer.Simple(12, function()
     ActionBanners:SetSetting("test", "width", (100/1920))
@@ -457,4 +514,4 @@ end)
 
 timer.Simple(16, function()
     ActionBanners:SetSetting("test", "width", (1700/1920))
-end)]]
+end)
