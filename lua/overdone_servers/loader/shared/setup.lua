@@ -165,3 +165,13 @@ function OverdoneServers:LoadClientFile(file)
     if SERVER then AddCSLuaFile(file) end
     if CLIENT then include(file) end
 end
+
+function OverdoneServers:GetLibrary(name)
+    name = string.lower(name)
+    if name == "enum" || name == "enums" then
+        return include(OverdoneServers.LibrariesDir .. "/lua-enum.lua")
+    else
+        error("Invalid Library used!")
+        return nil
+    end
+end

@@ -1,14 +1,13 @@
 local OS_Casino = OverdoneServers.OS_Casino
 local module = OS_Casino.Module
+local enum = OverdoneServers:GetLibrary("enum")
 
 OS_Casino.ENUMS = OS_Casino.ENUMS or {}
 
-OS_Casino.ENUMS.SUIT = {SPADES = 1, CLUBS = 2, DIAMONDS = 3, HEARTS = 4}
+OS_Casino.ENUMS.SUIT = enum.new("SUIT", {"SPADES", "CLUBS", "DIAMONDS", "HEARTS"})
+OS_Casino.ENUMS.KIND = enum.new("KIND", {"ACE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "JACK", "QUEEN", "KING"})
 
 local SUIT = OS_Casino.ENUMS.SUIT
-
-OS_Casino.ENUMS.KIND = {ACE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9, TEN = 10, JACK = 11, QUEEN = 12, KING = 13}
-
 local KIND = OS_Casino.ENUMS.KIND
 
 OS_Casino.CardLegend = {
