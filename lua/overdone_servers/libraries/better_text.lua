@@ -93,4 +93,17 @@ function OverdoneServers.BetterText:DrawText(text, font, w, h, defaultColor, ali
             end
         end
     end
+    return len
+end
+
+function OverdoneServers.BetterText:TableToText(text)
+    text = istable(text) and text or {text}
+
+    local out = ""
+    for _,v in ipairs(text) do
+        if isstring(v) or isnumber(v) or isbool(v) then
+            out = out .. tostring(v)
+        end
+    end
+    return out
 end

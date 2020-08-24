@@ -39,3 +39,25 @@ function OverdoneServers.TableHelper:InsertValue(value, tbl, ...) //Allows you t
         end
     end
 end
+
+function OverdoneServers.TableHelper:HasValue(t, val) //Unlike the default table.HasValue() function, it will return the key where the value was found and will return nil otherwise
+    for k, v in pairs(t) do
+    	if (v == val) then return k end
+    end
+    return nil
+end
+
+function OverdoneServers.TableHelper:RemoveIfFound(t, val) //Removes value if found
+    local key = self:HasValue(t, val)
+    if key != nil then
+        table.RemoveByValue(t, val)
+        return key
+    end
+    return nil
+end
+
+function OverdoneServers.TableHelper:RemoveValThenAdd(t, val) //Removes value if found then adds to end of table
+    local found = OverdoneServers.TableHelper:RemoveIfFound(t, val) != nil
+    local pos = table.insert(t, val)
+    return pos, found
+end

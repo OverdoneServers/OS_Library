@@ -19,11 +19,14 @@ OverdoneServers:LoadClientFile(OverdoneServers.LoaderDir .. "/client/materials.l
 if SERVER then
     include(OverdoneServers.LoaderDir .. "/server/load_mysql.lua")
     include(OverdoneServers.LoaderDir .. "/server/load_steamapi.lua")
+    include(OverdoneServers.LoaderDir .. "/server/networking.lua")
 end
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_master_fonts.lua")
 
 include(OverdoneServers.LoaderDir .. "/server/load_resources.lua")
+
+OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/permissions.lua")
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_modules.lua")
 

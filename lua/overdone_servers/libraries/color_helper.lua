@@ -28,6 +28,14 @@ function OverdoneServers:GetHueColor(color, hue)
     return Color(t.r, t.g, t.b, color.a)
 end
 
+function OverdoneServers:GetColorFromHue(hue)
+    while hue > 360 do
+        hue = hue - 360
+    end
+    local t = HSLToColor(hue,1,0.5)
+    return Color(t.r, t.g, t.b, 255)
+end
+
 function OverdoneServers:GetLightnessColor(color, lightness)
     local h,s,l = ColorToHSL(color)
     l = l + lightness

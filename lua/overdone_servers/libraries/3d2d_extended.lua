@@ -236,9 +236,9 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
         local pan = OverdoneServers.DPanels3D[i]
         if not IsValid(pan) or (pan.OS_3D_Ent != nil and not IsValid(pan.OS_3D_Ent)) then
             table.insert(toRemove, i) 
-            LocalPlayer():ChatPrint("REMOVED PANEL!! " .. (not IsValid(pan) and "Panel invalid" or "Entity removed"))
+            --LocalPlayer():ChatPrint("REMOVED PANEL!! " .. (not IsValid(pan) and "Panel invalid" or "Entity removed"))
         else
-            table.insert(toRender, pan)
+            table.insert(toRender, pan) //TODO: in the panel check if a value exists with a panel. SetRenderParent/GetRenderParent it will force the parent to render first. (Parent Panel renders BEHIND pan)
         end
     end
 
@@ -276,6 +276,8 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
                 + ang:Right()*(y/2)
             or Vector())
         or pos)
+
+
         p.OS_3D_LockEntPos = isvector(p.OS_3D_LockEntPos) and p.OS_3D_LockEntPos or (p.OS_3D_LockEntPos == true and p.OS_3D_PosOffset + (p.OS_3D_Ent and p.OS_3D_Ent:LocalToWorld(p.OS_3D_Pos) or Vector()) or nil)
         //TODO: Why do panels FREAK OUT when placed on world (angle problem)
         p.OS_3D_LockEntAng = isangle(p.OS_3D_LockEntAng) and p.OS_3D_LockEntAng or (p.OS_3D_LockEntAng == true and ang) or nil

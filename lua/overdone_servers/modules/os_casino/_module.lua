@@ -24,6 +24,14 @@ MODULE.FilesToLoad = {
                 noScale = true
             }
         },
+        {"CardFaceOnTable", "croissant-one.ttf",
+            {
+                font = "Croissant One",
+                size = 170,
+                weight = 500,
+                noScale = true
+            }
+        },
     }
 }
 

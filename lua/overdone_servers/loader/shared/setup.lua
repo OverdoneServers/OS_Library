@@ -175,3 +175,35 @@ function OverdoneServers:GetLibrary(name)
         return nil
     end
 end
+
+function OverdoneServers:WaitForTicks(ticks2wait, func)
+    for i=1,ticks2wait do
+        local f = func
+        func = function() timer.Simple(0, f) end
+    end
+    func()
+end
+
+if SERVER then
+    hook.Add("PlayerInitialSpawn", "OverdoneServers:InitSpawn", function(ply)
+        hook.Add("SetupMove", "OverdoneServers:SetupMove:" .. ply:SteamID64(), function(plyy)
+            if ply == plyy then
+                hook.Remove("SetupMove", "OverdoneServers:SetupMove:" .. ply:SteamID64())
+                hook.Run("OverdoneServers:PlayerReady", ply)
+            end
+        end)
+    end)
+elseif CLIENT then
+    hook.Add("SetupMove", "OverdoneServers:SetupMove", function(ply)
+        if LocalPlayer() == ply then
+            hook.Remove("SetupMove", "OverdoneServers:SetupMove")
+            hook.Run("OverdoneServers:PlayerReady", ply)
+        end
+    end)
+end
+
+for _,p in ipairs(player.GetHumans()) do
+	hook.Run("OverdoneServers:PlayerReady", p)
+end
+
+//So Sick Servers

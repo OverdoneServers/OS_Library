@@ -40,6 +40,7 @@ ActionBanners.Modules = {
             ["slidespeed"] = 1,
             ["lifetime"] = 60,
             ["width"] = (250/1920),
+            ["scale_width_to_text"] = false, //width becomes min width
             ["countdown"] = false, //Uses lifetime - timepassed
             ["default_text_color"] = Color(255,255,255),
             ["background_color"] = Color(75,75,75,150),
@@ -220,14 +221,22 @@ function ActionBanners:CreateBanner(module, topText, bottomText)
     panel:SetPos(0,ScrH()-1)
     panel.init_time = RealTime()
     panel:SetSize(1, (55/1080)*ScrH())
-    panel.MaxX = ActionBanners:GetSetting(module, "width")*ScrW()
+    panel.MaxX = math.Clamp(ActionBanners:GetSetting(module, "width"), 0.001, math.huge)*ScrW()
 
     panel.TopText, panel.BottomText = topText, bottomText
     panel.StartX = 1
+    
+    local timeTab = (25/1920)*ScrW()
 
     function panel:Paint(w,h)
         if not self.Rendering then return end
-        local widthSetting = tonumber(tostring(ActionBanners:GetSetting(module, "width")*ScrW())) //You have to do "to str to num" this cuz some random coding language bug most langs have. (https://codea.io/talk/discussion/8728/0-3-does-not-equal-0-3-codea-bug-lua-bug-ambush-bug)
+        local widthSetting = tonumber(tostring(math.Clamp(ActionBanners:GetSetting(module, "width"), 0.001, math.huge)*ScrW())) //You have to do "to str to num" this cuz some random coding language bug most langs have. (https://codea.io/talk/discussion/8728/0-3-does-not-equal-0-3-codea-bug-lua-bug-ambush-bug)
+
+        if ActionBanners:GetSetting(module, "scale_width_to_text") then
+            local mathh = (((self.TitleWidth or 0) > (self.TextWidth or 0)) and (self.TitleWidth and (self.TitleWidth + timeTab*1.5) or widthSetting) or (self.TextWidth and (self.TextWidth + timeTab*1.5) or widthSetting) or widthSetting)
+            widthSetting = (mathh > widthSetting) and mathh or widthSetting
+        end
+
         if widthSetting != self.MaxX then //Width was changed after panels were created!!!
             self._timepassed = nil
             self.widthChange = true
@@ -241,8 +250,6 @@ function ActionBanners:CreateBanner(module, topText, bottomText)
 
         self._timepassed = self._timepassed or 0
         self._animProgress = self._animProgress or 0
-        
-        local mathh = (25/1920)*ScrW()
 
         if self._timepassed <= math.pi then
             self._timepassed = self._timepassed + (RealFrameTime()*4 * (self.FinalRemove and 2 or 1) * ActionBanners:GetSetting(module, "slidespeed"))
@@ -254,7 +261,7 @@ function ActionBanners:CreateBanner(module, topText, bottomText)
                     ActionBanners:UpdateBannerPos()
                     panel.DefRemove(self)
                 end
-                self:SetSize(OverdoneServers.EaseFunctions:EaseOutExpo(self._animProgress, self.FinalRemove and mathh or self.MaxX, self.FinalRemove and 1 or mathh), select(2, self:GetSize()))
+                self:SetSize(OverdoneServers.EaseFunctions:EaseOutExpo(self._animProgress, self.FinalRemove and timeTab or self.MaxX, self.FinalRemove and 1 or timeTab), select(2, self:GetSize()))
             else
                 self:SetSize(OverdoneServers.EaseFunctions:Spring(self._animProgress, self.StartX, self.MaxX), select(2, self:GetSize()))
             end
@@ -271,15 +278,17 @@ function ActionBanners:CreateBanner(module, topText, bottomText)
         local defaultTextColor = ActionBanners:GetSetting(module, "default_text_color")
 
         if self.TopText != nil and self.BottomText != nil then
-            OverdoneServers.BetterText:DrawText(self.TopText, "OverdoneServers:ActionBanners:Text", mathh*0.1, h*1/3, defaultTextColor)
-            OverdoneServers.BetterText:DrawText(self.BottomText, "OverdoneServers:ActionBanners:Text", mathh*0.1, h*2/3, defaultTextColor)
+            self.TitleWidth = OverdoneServers.BetterText:DrawText(self.TopText, "OverdoneServers:ActionBanners:Text", timeTab*0.1, h*1/3, defaultTextColor)
+            --local saaa = surface.GetTextSize(OverdoneServers.BetterText:TableToText(self.BottomText))
+            --self.TextWidth = OverdoneServers.BetterText:DrawText(table.Add(table.Copy(self.BottomText), {" : ", saaa}), "OverdoneServers:ActionBanners:Text", timeTab*0.1, h*2/3, defaultTextColor)
+            self.TextWidth = OverdoneServers.BetterText:DrawText(self.BottomText, "OverdoneServers:ActionBanners:Text", timeTab*0.1, h*2/3, defaultTextColor)
         elseif self.TopText != nil then
-            OverdoneServers.BetterText:DrawText(self.TopText, "OverdoneServers:ActionBanners:Text", mathh*0.1, h/2, defaultTextColor)
+            self.TitleWidth = OverdoneServers.BetterText:DrawText(self.TopText, "OverdoneServers:ActionBanners:Text", timeTab*0.1, h/2, defaultTextColor)
         elseif self.BottomText != nil then
-            OverdoneServers.BetterText:DrawText(self.BottomText, "OverdoneServers:ActionBanners:Text", mathh*0.1, h/2, defaultTextColor)
+            self.TextWidth = OverdoneServers.BetterText:DrawText(self.BottomText, "OverdoneServers:ActionBanners:Text", timeTab*0.1, h/2, defaultTextColor)
         end
 
-        draw.RoundedBox(0,w-mathh,0,mathh*1.1,h,ActionBanners:GetSetting(module, "timer_color"))
+        draw.RoundedBox(0,w-timeTab,0,timeTab*1.1,h,ActionBanners:GetSetting(module, "timer_color"))
         local lifetime = ActionBanners:GetSetting(module, "lifetime")
         local num = (RealTime() - self.init_time)
 
@@ -332,9 +341,9 @@ function ActionBanners:CreateBanner(module, topText, bottomText)
 
         local timer_text_color = ActionBanners:GetSetting(module, "timer_text_color")
 
-        draw.SimpleText(str[1], "OverdoneServers:ActionBanners:TimePassed", (w-mathh) + (mathh/2), 0, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
-        draw.SimpleText(str[2], "OverdoneServers:ActionBanners:TimePassed", (w-mathh) + (mathh/2), h*.3, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
-        draw.SimpleText(numType, "OverdoneServers:ActionBanners:TimePassed:Small", (w-mathh) + (mathh/2), h*.6, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText(str[1], "OverdoneServers:ActionBanners:TimePassed", (w-timeTab) + (timeTab/2), 0, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText(str[2], "OverdoneServers:ActionBanners:TimePassed", (w-timeTab) + (timeTab/2), h*.3, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+        draw.SimpleText(numType, "OverdoneServers:ActionBanners:TimePassed:Small", (w-timeTab) + (timeTab/2), h*.6, timer_text_color, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
         
         if not self.Removing and endOfLife then
             self:Remove()
@@ -358,6 +367,9 @@ function ActionBanners:IsVisible(module)
 end
 
 function ActionBanners:SetSetting(module, name, value)
+    if value == nil then
+        value = OverdoneServers.TableHelper:GetValue(ActionBanners.Modules, "default", "settings", name)
+    end
     OverdoneServers.TableHelper:SetValue(value, ActionBanners.Modules, module, "settings", name)
     return true
 end
@@ -449,7 +461,7 @@ function ActionBanners:SetBanner(module, id, topText, bottomText)
     end
     return false
 end
-
+--[[
 ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
 ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
 ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
@@ -515,3 +527,4 @@ end)
 timer.Simple(16, function()
     ActionBanners:SetSetting("test", "width", (1700/1920))
 end)
+--]]

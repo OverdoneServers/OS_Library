@@ -2,33 +2,34 @@ local OS_Casino = OverdoneServers.OS_Casino
 local module = OS_Casino.Module
 
 local function CardKind(kind)
-    if kind == 1 then return "A"
-    elseif kind <= 10 then return kind
-    elseif kind == 11 then return "J"
-    elseif kind == 12 then return "Q" 
-    elseif kind == 13 then return "K"
+    if kind < 10 then return kind + 1
+    elseif kind == 10 then return "J"
+    elseif kind == 11 then return "Q"
+    elseif kind == 12 then return "K" 
+    elseif kind == 13 then return "A"
     else return "Er" end 
 end
 
 --Idea: all cards will have an oval with the data inside (what card it is), and the surrounding foreground can be any material you want (card design). This function returns the panel with everything built.
 function OS_Casino:BuildCard(cardBackground, cardData, cardForeground, font, suits)
     local genBlankCard = false
-    print(cardData)
-    PrintTable(istable(cardData) and cardData or {})
-    if cardData == nil or cardData == 0 then
-        genBlankCard = true
-    else
-        if not OS_Casino:IsValidCard(cardData) then ErrorNoHalt([[
-        ----- OS Casino -----
-        Card data is invalid! Card not built.
-        ]] ..
-        "Suit: " .. (cardData and (tostring(cardData.suit)) or "nil") ..
-        "\nKind: " .. (cardData and (tostring(cardData.kind)) or "nil") .. "\n"
-        .. [[
-        ---------------------
-        ]]) return end
+    if not isfunction(cardData) then
+        PrintTable(istable(cardData) and cardData or {})
+        if cardData == nil or cardData == 0 then
+            genBlankCard = true
+        else
+            if not OS_Casino:IsValidCard(cardData) then ErrorNoHalt([[
+            ----- OS Casino -----
+            Card data is invalid! Card not built.
+            ]] ..
+            "Suit: " .. (cardData and (tostring(cardData.suit)) or "nil") ..
+            "\nKind: " .. (cardData and (tostring(cardData.kind)) or "nil") .. "\n"
+            .. [[
+            ---------------------
+            ]]) return end
+        end
     end
-    
+
     font = font or "Default"
     cardBackground = istable(cardBackground) and cardBackground or {cardBackground}
 
@@ -89,20 +90,44 @@ function OS_Casino:BuildCard(cardBackground, cardData, cardForeground, font, sui
     end
 
     local suitKind = nil
-    if not genBlankCard then 
-        local suit,kind = cardData.suit,cardData.kind
+    if isfunction(cardData) or not genBlankCard then 
+        local suit,kind = nil,nil
+        if isfunction(cardData) then
+            local cData = cardData()
+            if cData != 0 then
+                suit,kind = cData.suit,cData.kind
+            end
+        else
+            suit,kind = cardData.suit,cardData.kind
+        end
 
         suitKind = card:Add("DSprite")
 
-        local matData = suits[suit]
+        local matData = suit and suits[suit] or nil
 
-        suitKind:SetMaterial(matData[1])
-        suitKind:SetColor(matData[2])
+        suitKind:SetMaterial(matData and matData[1] or nil)
+        suitKind:SetColor(matData and matData[2] or Color(0,0,0))
 
-        local kindText = CardKind(kind)
+        local kindText = kind and CardKind(kind) or ""
 
         suitKind._DefPaint = suitKind.Paint
         function suitKind:Paint(w,h)
+            if isfunction(cardData) then
+                local cData = cardData()
+                if cData == 0 then
+                    suit,kind = nil,nil
+                else
+                    suit,kind = cData.suit,cData.kind
+                end
+
+                local matData = suit and suits[suit] or nil
+
+                suitKind:SetMaterial(matData and matData[1] or nil)
+                suitKind:SetColor(matData and matData[2] or Color(0,0,0))
+
+                kindText = kind and CardKind(kind) or ""
+            end
+
             local cx, cy = card:GetSize()
             self:SetSize(3*cx/5, 3*cy/5)
             self:SetPos(0,0)

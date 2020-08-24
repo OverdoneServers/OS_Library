@@ -85,7 +85,7 @@ local function CacheMats()
 end
 
 if game.SinglePlayer() then
-    CacheMats()
+    timer.Simple(30, CacheMats)
 else
     hook.Add("DrawOverlay", "OverdoneServers:PreCache:Materials", function()
 		CacheMats()

@@ -47,6 +47,16 @@ function MODULE:OnRemove()
     self:OnDestory()
 end
 
+if SERVER then
+    function MODULE:AddPermission(permission, defaultRank, displayName)
+        OverdoneServers:AddPermission(ModuleData.FolderName .. "_" .. permission, defaultRank, displayName)
+    end
+end
+
+function MODULE:HasPermission(ply, permission)
+    return OverdoneServers:HasPermission(ply, ModuleData.FolderName .. "_" .. permission)
+end
+
 OverdoneServers:AddMetaTable(ModuleData, MODULE)
 
 function ModuleData:Font(fontName)
