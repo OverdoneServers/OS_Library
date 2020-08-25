@@ -2,6 +2,7 @@ OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/table_helper.lu
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/easingfunctions.lua")
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/lua-enum.lua")
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/color_helper.lua")
+OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/currencies.lua")
 
 
 OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/3d2dvgui.lua")

@@ -61,6 +61,8 @@ function OverdoneServers.BetterText:TextWrap(text, font, maxWidth)
     return text
 end
 
+local entityTable = {}
+
 function OverdoneServers.BetterText:DrawText(text, font, w, h, defaultColor, alignX, alignY)
     text = istable(text) and text or {text}
     alignX = alignX or TEXT_ALIGN_LEFT
@@ -85,9 +87,11 @@ function OverdoneServers.BetterText:DrawText(text, font, w, h, defaultColor, ali
             lastCol = v
         elseif IsEntity(v) then
             if not IsValid(v) then
-                DrawText("Invalid Entity")
+                DrawText(entityTable[v] or "Invalid Entity")
             elseif v:IsPlayer() then
-                DrawText(v:Nick())
+                local nick = v:Nick()
+                DrawText(nick)
+                entityTable[v] = nick
             else
                 DrawText(v:GetClass())
             end
