@@ -1,7 +1,6 @@
-local OS_Sandboxed = {} //Creates a local currency that does NOT get saved anywhere.
 local startBalance = 1000 //Sets the default balance people will have.
 
-
+--[[
 
 local CURRENCY = {} //Creates an empty table to be used for setting up the currency
 
@@ -33,6 +32,24 @@ function CURRENCY:Format(amount) //Returns a formated string of the amount.
     return self.Settings.signAtStart and (self.Settings.sign .. amount) or (amount .. self.Settings.sign)
 end
 
-CURRENCY.Settings = {signAtStart = true, sign = "$", ShowCommas = true} //Add any settings you want to be visable in the OS:Menu
+CURRENCY.Settings = {signAtStart = false, sign = "ꬶ", ShowCommas = true} //Add any settings you want to be visable in the OS:Menu
 
-OverdoneServers.Currencies:AddCurrency("os_sandboxed", CURRENCY) //Creates the currency with the name "os_sandboxed"
+OverdoneServers.Currencies:AddCurrency("OS_Sandboxed", CURRENCY) //Creates the currency with the name "OS_Sandboxed"
+]]
+
+
+local CURRENCY = {} //Creates an empty table to be used for setting up the currency
+CURRENCY.Name = "OS_Sandboxed"
+
+function CURRENCY:GetBalance(ply)
+    return ply:GetNWInt("OverdoneServers:Currency:OS_Sandboxed", startBalance) //Add the currency addon's function to return a player's balance here
+end
+
+function CURRENCY:SetFunction(ply, amount)
+    ply:SetNWInt("OverdoneServers:Currency:OS_Sandboxed", amount)
+end
+
+CURRENCY.Settings = {TakeIfOver = true, SignAtStart = false, Sign = "ꬶ", ShowCommas = true} //Setting Defaults
+
+OverdoneServers.Currencies:AddCurrency(CURRENCY.Name, CURRENCY) //Creates the currency
+

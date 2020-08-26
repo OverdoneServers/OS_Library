@@ -1,10 +1,9 @@
 OverdoneServers.Currencies = {}
-OverdoneServers.Currencies.Currencies = {}
 
-
-function OverdoneServers.Currencies:AddCurrency(currencyName)
-    self.Currencies[currencyName] = self.Currencies[currencyName] or {}
-    return self.Currencies[currencyName]
+function OverdoneServers.Currencies:AddCurrency(currencyName, data)
+    OverdoneServers.Currencies:AddDefaultMeta(data)
+    OverdoneServers.Currencies[currencyName] = data
+    return OverdoneServers.Currencies[currencyName]
 end
 
 function OverdoneServers.Currencies:GetCurrency(currencyName)
@@ -18,6 +17,7 @@ function OverdoneServers.Currencies:Add(currencyName, ply, amount)
             return currencyData:Add(ply, amount)
         end
     end
+    return nil
 end
 
 function OverdoneServers.Currencies:Take(currencyName, ply, amount)
@@ -27,6 +27,7 @@ function OverdoneServers.Currencies:Take(currencyName, ply, amount)
             return currencyData:Take(ply, amount)
         end
     end
+    return nil
 end
 
 function OverdoneServers.Currencies:CanAfford(currencyName, ply, amount)
@@ -53,48 +54,49 @@ function OverdoneServers.Currencies:Format(currencyName, amount)
     return nil
 end
 
-
-
-
-
---[[
-OverdoneServers.Currencies:AddCurrency("SH:Pointshop Standard", {
-    Add = function(ply, amount)
-        local newBal = (OS_Sandboxed[ply:SteamID64()] or startBalance) + amount
-        OS_Sandboxed[ply:SteamID64()] = newBal
-        return newBal
-    end,
-    Take = function(ply, amount)
-        local leftOver = (OS_Sandboxed[ply:SteamID64()] or startBalance) - amount
-        OS_Sandboxed[ply:SteamID64()] = math.Clamp(leftOver, 0, math.huge)
-        
-        return math.Clamp(leftOver, -math.huge, 0)
-    end,
-    CanAfford = function(ply, amount)
-        local has = OS_Sandboxed[ply:SteamID64()] or startBalance
-        if amount == nil then return has end
-        has = has - amount
-        
-        return has >= 0, math.Clamp(-has, 0, math.huge)
-    end,
-    Funds = function(ply)
-        return OS_Sandboxed[ply:SteamID64()] or startBalance
-    end,
-    Format = function(amount)
-        local amount = dontFormatWithCommas and amount or string.Comma(amount)
-        return signAtStart and (sign .. amount) or (amount .. sign)
-    end
-})]]
---[[
-for _,p in ipairs(player.GetHumans()) do
-    local currency = OverdoneServers.Currencies:GetCurrency("os_sandboxed")
-
-    print(p, "Funds: ", currency.Funds(p))
-    print(p, "Added: ", currency.Add(p, 100))
-    print(p, "Funds: ", currency.Funds(p))
-    print(p, "Took: ", currency.Take(p, 500))
-    print(p, "Funds: ", currency.Funds(p))
-    print(p, "Can Afford: ", currency.CanAfford(p, 3000))
-    print(p, "Formated Funds: ", currency.Format(currency.Funds(p)))
+local DefaultMeta = {}
+function DefaultMeta:Add(ply, amount) //This should deposit an amount to the player's balance
+    self:SetFunction(ply, self:Balance() + amount) //Add function to add the amount
+    return self:Balance(ply) //Returns the new balance
 end
-]]
+
+function DefaultMeta:Take(ply, amount) //This should withdraw amounts from the player's balance
+    local leftOver = self:Balance(ply) - amount //How much is left over after the transaction?
+    if not self.Settings.TakeIfOver and leftOver < 0 then //If true, then do not take the balance if the player cannot afford it
+        return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge)
+    end
+    self:SetFunction(ply, math.Clamp(leftOver, 0, math.huge)) //Function to set new amount from balance
+    return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge) //Returns balance, debt
+end
+
+function DefaultMeta:CanAfford(ply, amount) //Uses Balance() and compares
+    local has = self:Balance(ply)
+    has = has - amount
+    return has >= 0, math.Clamp(-has, 0, math.huge) //Returns bool, debt
+end
+
+function DefaultMeta:Balance(ply) //Returns the player's current balance. Nothing else.
+    return self:GetFunction(ply)
+end
+
+function DefaultMeta:Format(amount) //Returns a formatted string of the amount.
+    if isentity(amount) and amount:IsPlayer() then amount = self:Balance(amount) end
+    local amount = self.Settings.ShowCommas and string.Comma(amount) or amount
+    return self.Settings.SignAtStart and (self.Settings.Sign .. amount) or (amount .. self.Settings.Sign)
+end
+
+function OverdoneServers.Currencies:AddDefaultMeta(tbl)
+    OverdoneServers:AddMetaTable(tbl, DefaultMeta)
+end
+
+OverdoneServers:WaitForTicks(3, function()
+    for _, fileName in ipairs(file.Find(OverdoneServers.MainDir .. "/currencies" .. "/*.lua", "LUA")) do
+        local currencyFile = OverdoneServers.MainDir .. "/currencies" .. "/" .. fileName
+        if CLIENT or file.Size(currencyFile, "LUA") > 0 then
+            AddCSLuaFile(currencyFile)
+            include(currencyFile)
+        else
+            ErrorNoHalt("Error: Currency file EMPTY for \"" .. fileName .. "\"!\n") //TODO: change to pretty print
+        end
+    end
+end)
