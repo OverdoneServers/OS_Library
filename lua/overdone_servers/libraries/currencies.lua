@@ -11,21 +11,17 @@ function OverdoneServers.Currencies:GetCurrency(currencyName)
 end
 
 function OverdoneServers.Currencies:Add(currencyName, ply, amount)
-    if SERVER then
-        local currencyData = OverdoneServers.Currencies[currencyName]
-        if currencyData and isfunction(currencyData.Add) then
-            return currencyData:Add(ply, amount)
-        end
+    local currencyData = OverdoneServers.Currencies[currencyName]
+    if currencyData and isfunction(currencyData.Add) then
+        return currencyData:Add(ply, amount)
     end
     return nil
 end
 
 function OverdoneServers.Currencies:Take(currencyName, ply, amount)
-    if SERVER then
-        local currencyData = OverdoneServers.Currencies[currencyName]
-        if currencyData and isfunction(currencyData.Take) then
-            return currencyData:Take(ply, amount)
-        end
+    local currencyData = OverdoneServers.Currencies[currencyName]
+    if currencyData and isfunction(currencyData.Take) then
+        return currencyData:Take(ply, amount)
     end
     return nil
 end
@@ -56,17 +52,23 @@ end
 
 local DefaultMeta = {}
 function DefaultMeta:Add(ply, amount) //This should deposit an amount to the player's balance
-    self:SetFunction(ply, self:Balance() + amount) //Add function to add the amount
-    return self:Balance(ply) //Returns the new balance
+    if SERVER then
+        self:SetFunction(ply, self:Balance(ply) + amount) //Add function to add the amount
+        return self:Balance(ply) //Returns the new balance
+    end
+    return nil
 end
 
 function DefaultMeta:Take(ply, amount) //This should withdraw amounts from the player's balance
-    local leftOver = self:Balance(ply) - amount //How much is left over after the transaction?
-    if not self.Settings.TakeIfOver and leftOver < 0 then //If true, then do not take the balance if the player cannot afford it
-        return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge)
+    if SERVER then
+        local leftOver = self:Balance(ply) - amount //How much is left over after the transaction?
+        if not self.Settings.TakeIfOver and leftOver < 0 then //If true, then do not take the balance if the player cannot afford it
+            return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge)
+        end
+        self:SetFunction(ply, math.Clamp(leftOver, 0, math.huge)) //Function to set new amount from balance
+        return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge) //Returns balance, debt
     end
-    self:SetFunction(ply, math.Clamp(leftOver, 0, math.huge)) //Function to set new amount from balance
-    return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge) //Returns balance, debt
+    return nil
 end
 
 function DefaultMeta:CanAfford(ply, amount) //Uses Balance() and compares
@@ -98,5 +100,20 @@ OverdoneServers:WaitForTicks(3, function()
         else
             ErrorNoHalt("Error: Currency file EMPTY for \"" .. fileName .. "\"!\n") //TODO: change to pretty print
         end
+    end
+end)
+
+timer.Simple(3, function()
+    local currency = OverdoneServers.Currencies:GetCurrency("SH_PointshopStandard")
+    for _,ply in ipairs(player.GetHumans()) do
+        print(ply, "Current", currency:Format(currency:Balance(ply)))
+        print(ply, "Add", tostring(currency:Add(ply, 100)))
+        print(ply, "Current", currency:Format(currency:Balance(ply)))
+        print(ply, "Take", currency:Take(ply, 1234))
+        print(ply, "Current", currency:Format(currency:Balance(ply)))
+        print(ply, "CanAfford '500'", currency:CanAfford(ply, 500))
+        print(ply, "CanAfford '1000'", currency:CanAfford(ply, 1000))
+        print(ply, "CanAfford '1000000000000'", currency:CanAfford(ply, 1000000000000))
+        print(ply, "Current", currency:Format(currency:Balance(ply)))
     end
 end)

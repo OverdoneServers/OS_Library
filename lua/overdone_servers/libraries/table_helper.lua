@@ -61,3 +61,24 @@ function OverdoneServers.TableHelper:RemoveValThenAdd(t, val) //Removes value if
     local pos = table.insert(t, val)
     return pos, found
 end
+
+function OverdoneServers.TableHelper:Purge(t1, t2) //Removes value if found in the other table. Returns what keys were removed from table1 (in ipairs) and how big that table is
+    local vals = {}
+
+    for _,v in pairs(t2) do
+        vals[v] = true
+    end
+    
+    local keysRemoved = {}
+    local count = 0 //Allows you to not use table.Count() (aka faster since your counting while building the table)
+
+    for k,v in pairs(t1) do
+        if vals[v] then
+            table.insert(keysRemoved, k)
+            count = count + 1
+            t1[k] = nil
+        end
+    end
+
+    return keysRemoved, count
+end

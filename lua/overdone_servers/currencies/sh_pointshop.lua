@@ -1,8 +1,8 @@
 local CURRENCY = {} //Creates an empty table to be used for setting up the currency
-CURRENCY.Name = "SH_PointshopStandard"
+CURRENCY.Name = "SH_Pointshop:Standard"
 
 function CURRENCY:GetFunction(ply) 
-    ply:SH_GetStandardPoints() //Add the currency addon's function to return a player's balance here
+    return ply:SH_GetStandardPoints() //Add the currency addon's function to return a player's balance here
 end
 
 function CURRENCY:SetFunction(ply, amount) 
@@ -16,10 +16,10 @@ OverdoneServers.Currencies:AddCurrency(CURRENCY.Name, CURRENCY) //Creates the cu
 
 
 local CURRENCY = {} //Creates an empty table to be used for setting up the currency
-CURRENCY.Name = "SH_PointshopPremium"
+CURRENCY.Name = "SH_Pointshop:Premium"
 
 function CURRENCY:GetFunction(ply) 
-    ply:SH_GetPremiumPoints() //Add the currency addon's function to return a player's balance here
+    return ply:SH_GetPremiumPoints() //Add the currency addon's function to return a player's balance here
 end
 
 function CURRENCY:SetFunction(ply, amount) 
