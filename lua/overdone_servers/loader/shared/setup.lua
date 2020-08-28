@@ -35,11 +35,15 @@ function OverdoneServers:PrintLoadingText(module, type)
         elseif type == "SHARED" then type = 3
         elseif type == "FONTS" then type = 4
         else type = 0 end
-    end 
+    else
+        type = 0
+    end
+
+    local displayName = istable(module) and (module.DisplayName or module.FolderName) or module
 
     if module != self.Loading.lastModule then //TODO: make the name change the spacing of -----
         self:PrettyPrint("///////////////////////////////////////////////////")
-        self:PrettyPrint("//------------------ Loading " .. (self:ValidModuleName(module) and module or "Invalid Name") .. " ---------------------//")
+        self:PrettyPrint("//------------------ " .. ((istable(module) and OverdoneServers.Modules[module.FolderName] or nil) and "Reloading" or "Loading") .. " " .. (self:ValidModuleName(displayName) and displayName or "Invalid Name") .. " ---------------------//")
         self:PrettyPrint("///////////////////////////////////////////////////")
         self.Loading.lastModule = module
         self.Loading.lastType = -0
@@ -86,8 +90,7 @@ function OverdoneServers:AddModule(moduleData)
     //TODO: Check if module already exists
 
     self.IncludeData = moduleData
-    self.Modules[moduleData.FolderName] = include(self.LoaderDir .. "/shared/module.lua")
-    
+    self.Modules2Load[moduleData.FolderName] = include(self.LoaderDir .. "/shared/module.lua")
 end
 
 --[[
@@ -103,26 +106,26 @@ function OverdoneServers:AddMetaTable(tab, metatable, overwrite)
     end
 end
 
-function OverdoneServers:LoadModule(module)//TODO: Change FilesToLoad to DataToLoad or something like it
-    local failed = false
-
-    local ModuleName, FilesToLoad = module.FolderName, module.FilesToLoad
+function OverdoneServers:LoadModule(module)
+    local failed = nil
     
-    module.FontLocation = module.FontLocation or "OS:" .. ModuleName .. ":"
+    module.FontLocation = module.FontLocation or "OS:" .. module.FolderName .. ":"
     module.Networking = module.Networking or module.FontLocation
 
-    for type, files in pairs(FilesToLoad) do
+    if not istable(module.DataToLoad) then self:PrintLoadingText(module) return 2 end
+
+    for type, files in pairs(istable(module.DataToLoad) and module.DataToLoad or {}) do
         for _, f in ipairs(files) do
             if (not CLIENT or type != "Server") and type != "Materials" then 
-                self:PrintLoadingText(ModuleName, type)
+                self:PrintLoadingText(module, type)
             end
             
             if type == "Server" and SERVER then
-                if self:LoadLuaFile(ModuleName, f, 1) == false then failed = true end
+                if self:LoadLuaFile(module.FolderName, f, 1) == false then failed = 1 end
             elseif type == "Client" then
-                if self:LoadLuaFile(ModuleName, f, 2) == false then failed = true end
+                if self:LoadLuaFile(module.FolderName, f, 2) == false then failed = 1 end
             elseif type == "Shared" then
-                if self:LoadLuaFile(ModuleName, f, 3) == false then failed = true end
+                if self:LoadLuaFile(module.FolderName, f, 3) == false then failed = 1 end
             elseif type == "Fonts" then
                 self:LoadFont(f, module.FontLocation)
             elseif type == "Materials" then
@@ -135,7 +138,7 @@ function OverdoneServers:LoadModule(module)//TODO: Change FilesToLoad to DataToL
         end
     end
     
-    return not failed
+    return failed
 end
 
 function OverdoneServers:LoadFont(f, fontLocation)
@@ -205,5 +208,3 @@ end
 for _,p in ipairs(player.GetHumans()) do
 	hook.Run("OverdoneServers:PlayerReady", p)
 end
-
-//So Sick Servers

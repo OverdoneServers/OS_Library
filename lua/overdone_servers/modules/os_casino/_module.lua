@@ -8,7 +8,7 @@ OverdoneServers.OS_Casino = OverdoneServers.OS_Casino or {}
 MODULE.PublicVar = OverdoneServers.OS_Casino
 OverdoneServers.OS_Casino.Module = MODULE
 
-MODULE.FilesToLoad = {
+MODULE.DataToLoad = {
     Client = {
         "card_builder.lua",
         },
@@ -29,6 +29,7 @@ MODULE.FilesToLoad = {
                 font = "Croissant One",
                 size = 170,
                 weight = 500,
+
                 noScale = true
             }
         },

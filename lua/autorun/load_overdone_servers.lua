@@ -1,3 +1,4 @@
+if OverdoneServers then return end //Disables this file from being reloaded. (Can cause lots of issues)
 OverdoneServers = {}
 
 OverdoneServers.MainDir = "overdone_servers"
@@ -5,8 +6,6 @@ OverdoneServers.ModulesLocation = OverdoneServers.MainDir .. "/modules"
 OverdoneServers.LoaderDir = OverdoneServers.MainDir .. "/loader"
 OverdoneServers.ConfigDir = OverdoneServers.MainDir .. "/configuration"
 OverdoneServers.LibrariesDir = OverdoneServers.MainDir .. "/libraries"
-
-OverdoneServers.Modules = {}
 
 if OverdoneServers.FinishedLoading then print("Reloading OverdoneServers") end
 
