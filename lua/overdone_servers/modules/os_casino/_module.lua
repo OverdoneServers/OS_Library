@@ -4,6 +4,8 @@ MODULE.DisplayName = "OS: Casino"
 MODULE.FolderName = "os_casino"
 MODULE.Hidden = true
 
+MODULE.Version = "1.0.0"
+
 OverdoneServers.OS_Casino = OverdoneServers.OS_Casino or {}
 MODULE.PublicVar = OverdoneServers.OS_Casino
 OverdoneServers.OS_Casino.Module = MODULE

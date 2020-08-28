@@ -23,10 +23,7 @@ local function CheckModules2Load()
         local okayToLoad = true
         local missingThings = {}
         if module.Requires then
-            if istable(module.Requires) then 
-            elseif isstring(module.Requires) then
-                module.Requires = {module.Requires}
-            else
+            if not istable(module.Requires) then
                 OverdoneServers:PrettyPrint("///////////////////////////////////////////////////")
                 OverdoneServers:PrettyPrint("//Error Loading Module.  Requirements Are Invalid//")
                 OverdoneServers:PrettyPrint("///////////////////////////////////////////////////")
@@ -35,17 +32,34 @@ local function CheckModules2Load()
             end
 
             for _,req in ipairs(module.Requires) do
-                if not OverdoneServers.Modules[req] then
-                    if not OverdoneServers.Modules2Load[req] then
-                        table.insert(missingThings, req)
+                local isTable = istable(req)
+                local searchFor = isTable and req[1] or req
+
+                local loaded, unloaded = OverdoneServers.Modules[searchFor], OverdoneServers.Modules2Load[searchFor] 
+
+                if loaded or unloaded then
+                    if isstring(req[2]) then
+                        if not OverdoneServers:CompareVersions(loaded and (loaded.Version or "0.0.0") or (unloaded.Version or "0.0.0"), req[2]) then
+                            table.insert(missingThings, searchFor .. (isTable and (" v" .. req[2]) or "") .. " (installed " .. (loaded and (loaded.Version or "0.0.0") or (unloaded.Version or "0.0.0")) .. ")")
+                            okayToLoad = false
+                            --print("Incorrect Version", searchFor .. (isTable and (" v" .. req[2]) or ""))
+                            --print("Looking for Version", searchFor .. (" v" .. (loaded and loaded.Version or unloaded.Version)) or "")
+                            continue
+                        end
+                    end
+                end
+
+                if not loaded then
+                    if not unloaded then
+                        table.insert(missingThings, searchFor .. (isTable and (" v" .. req[2]) or ""))
                         okayToLoad = false
-                        //print("MISSING", req)
+                        print("MISSING", req)
                         continue
                     end
                     okayToLoad = false
-                    //print("WAITING FOR", req)
+                    print("WAITING FOR", req)
                 else
-                    //print("FOUND", req)
+                    print("FOUND", searchFor .. (" v" .. (loaded and loaded.Version or unloaded.Version)))
                 end
             end
         end
@@ -99,8 +113,8 @@ BuildRefreshTimer()
 
 timer.Create("OverdoneServers:CheckModules2Load:Checker", 1, 0, function() //WARNING: sv_hibernate_think will have to be set to '1' in order to for modules to reload while players are offline. (This can be fixed by using a Coroutine)
     if not timer.Exists("OverdoneServers:CheckModules2Load") then
-        print("An error has occored, please look above for the cause.\nModule(s) will try to load again in 30 seconds.")
-        timer.Create("OverdoneServers:CheckModules2Load", 30, 1, BuildRefreshTimer)
+        print("An error has occored, please look above for the cause.\nModule(s) will try to load again in 60 seconds.")
+        timer.Create("OverdoneServers:CheckModules2Load", 60, 1, BuildRefreshTimer)
     end
 end)
 

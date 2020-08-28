@@ -173,8 +173,10 @@ function OverdoneServers:GetLibrary(name)
     name = string.lower(name)
     if name == "enum" || name == "enums" then
         return include(OverdoneServers.LibrariesDir .. "/lua-enum.lua")
+    elseif name == "lua-semver" || name == "versions" || name == "version" || name == "versioning" then
+        return include(OverdoneServers.LibrariesDir .. "/lua-semver.lua")
     else
-        error("Invalid Library used!")
+        error("Invalid Library used: \"" .. name .. "\"")
         return nil
     end
 end
@@ -207,4 +209,10 @@ end
 
 for _,p in ipairs(player.GetHumans()) do
 	hook.Run("OverdoneServers:PlayerReady", p)
+end
+
+local lua_semver = OverdoneServers:GetLibrary("versioning")
+function OverdoneServers:CompareVersions(v1, v2) // Returns is V1 Greater or Equal to V2 and the reason that it returned what value
+    assert(isstring(v1) and isstring(v2), "Both Versions Must Be Strings!")
+    return lua_semver(v1) >= lua_semver(v2)
 end

@@ -1,3 +1,5 @@
+
+OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/lua-semver.lua")
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/table_helper.lua")
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/easingfunctions.lua")
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/lua-enum.lua")
