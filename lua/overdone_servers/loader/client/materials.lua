@@ -73,7 +73,17 @@ local mats = {
         		</filter>
         	</defs>
         </svg>
-    ]]
+    ]],
+	["RoundedBar"] = [[
+        <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="225" width="50" height="500" rx="25" fill="white"/>
+        </svg>
+    ]],
+	["Circle"] = [[
+        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="100" cy="100" r="100" fill="white"/>
+		</svg>
+    ]],
 }
 
 local function CacheMats()
