@@ -85,10 +85,6 @@ function OverdoneServers:LoadLuaFile(module, f, type)
 end
 
 function OverdoneServers:AddModule(moduleData)
-    --moduleData.FolderName = 
-
-    //TODO: Check if module already exists
-
     self.IncludeData = moduleData
     self.Modules2Load[moduleData.FolderName] = include(self.LoaderDir .. "/shared/module.lua")
 end

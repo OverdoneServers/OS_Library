@@ -53,13 +53,13 @@ local function CheckModules2Load()
                     if not unloaded then
                         table.insert(missingThings, searchFor .. (isTable and (" v" .. req[2]) or ""))
                         okayToLoad = false
-                        print("MISSING", req)
+                        --print("MISSING", req)
                         continue
                     end
                     okayToLoad = false
-                    print("WAITING FOR", req)
+                    --print("WAITING FOR", req)
                 else
-                    print("FOUND", searchFor .. (" v" .. (loaded and loaded.Version or unloaded.Version)))
+                    --print("FOUND", searchFor .. (" v" .. (loaded and loaded.Version or unloaded.Version)))
                 end
             end
         end
@@ -118,6 +118,7 @@ timer.Create("OverdoneServers:CheckModules2Load:Checker", 1, 0, function() //WAR
     end
 end)
 
+OverdoneServers:WaitForTicks(3, CheckModules2Load) //WARNING: Remove this if you get coroutines working. (aka temp fix)
 
 --[[
 print(coroutine.status(OverdoneServers.Modules2LoadCoroutine))
