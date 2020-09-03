@@ -20,6 +20,7 @@ end
 local function CheckModules2Load()
     for k, module in pairs(OverdoneServers.Modules2Load) do
         
+        -- Check if module requires other modules --
         local okayToLoad = true
         local missingThings = {}
         if module.Requires then
@@ -64,6 +65,7 @@ local function CheckModules2Load()
             end
         end
 
+        -- Was the module missing any other modules --
         local missingThingsCount = #missingThings
         if missingThingsCount > 0 then
             OverdoneServers:PrintLoadingText(module)
@@ -87,10 +89,20 @@ local function CheckModules2Load()
             continue
         end
 
+        -- Should this module load last --
+        if module.LoadLast and okayToLoad then
+            for k, mod in pairs(OverdoneServers.Modules2Load) do
+                if not mod.LoadLast then
+                    okayToLoad = false
+                end
+            end
+        end
+
+        -- Should we load the module now? --
         if not okayToLoad then continue end
 
+        -- Load the module --
 
-        
         local loaded = OverdoneServers:LoadModule(module)
 
         OverdoneServers:PrettyPrint("///////////////////////////////////////////////////")
