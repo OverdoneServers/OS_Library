@@ -255,10 +255,13 @@ hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
 
         local ang = p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or returnedAng
 
-        ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Forward(), returnedAng.x or 0)
-        ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Right(), returnedAng.y or 0)
-        ang:RotateAroundAxis((p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or ang):Up(), returnedAng.z or 0)
-        
+
+        if IsValid(p.OS_3D_Ent) then
+            ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Forward(), returnedAng.x or 0)
+            ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Right(), returnedAng.y or 0)
+            ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Up(), returnedAng.z or 0)
+        end
+
         local returnedPos = isfunction(p.OS_3D_Pos) and p.OS_3D_Pos(p.OS_3D_Ent) or p.OS_3D_Pos
         local pos = ang:Forward()*p.OS_3D_PosOffset.x + ang:Right()*p.OS_3D_PosOffset.y + ang:Up()*p.OS_3D_PosOffset.z
             + (p.OS_3D_Ent and

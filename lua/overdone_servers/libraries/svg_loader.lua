@@ -176,3 +176,26 @@ OverdoneServers.SVG:GetMaterial([[
 end)
 
 OverdoneServers.SVG.Error = Material("") //aka missing texture
+
+function OverdoneServers.SVG:CacheMaterials(module, matsTable)
+    if not module or not isstring(module.FolderName) or not istable(table) then return false end
+    if not istable(module.Materials) then module.Materials = {} end
+    
+    local function CacheMats()
+        for name,data in pairs(matsTable) do
+            OverdoneServers.SVG:GetMaterial(data, function(material)
+                module.Materials[name] = material
+            end)
+        end
+    end
+    
+    if game.SinglePlayer() then
+        timer.Simple(30, CacheMats)
+    else
+        hook.Add("DrawOverlay", "OverdoneServers:" .. module.FolderName .. ":PreCache:Materials", function()
+    		CacheMats()
+            hook.Remove("DrawOverlay", "OverdoneServers:" .. module.FolderName .. ":PreCache:Materials")
+        end)
+    end
+    return true
+end

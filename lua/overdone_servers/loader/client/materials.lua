@@ -86,20 +86,4 @@ local mats = {
     ]],
 }
 
-local function CacheMats()
-    for name,data in pairs(mats) do
-        OverdoneServers.SVG:GetMaterial(data, function(material)
-            OverdoneServers.Materials[name] = material
-        end)
-    end
-end
-
-if game.SinglePlayer() then
-    timer.Simple(30, CacheMats)
-else
-    hook.Add("DrawOverlay", "OverdoneServers:PreCache:Materials", function()
-		CacheMats()
-        --timer.Simple(5, CacheMats)
-        hook.Remove("DrawOverlay", "OverdoneServers:PreCache:Materials")
-    end)
-end
+OverdoneServers.SVG:CacheMaterials(OverdoneServers, mats)
