@@ -51,37 +51,37 @@ function OverdoneServers.Currencies:Format(currencyName, amount)
 end
 
 local DefaultMeta = {}
-function DefaultMeta:Add(ply, amount) //This should deposit an amount to the player's balance
+function DefaultMeta:Add(ply, amount) --This should deposit an amount to the player's balance
     if SERVER then
-        self:SetFunction(ply, self:Balance(ply) + amount) //Add function to add the amount
-        return self:Balance(ply) //Returns the new balance
+        self:SetFunction(ply, self:Balance(ply) + amount) --Add function to add the amount
+        return self:Balance(ply) --Returns the new balance
     end
     return nil
 end
 
-function DefaultMeta:Take(ply, amount) //This should withdraw amounts from the player's balance
+function DefaultMeta:Take(ply, amount) --This should withdraw amounts from the player's balance
     if SERVER then
-        local leftOver = self:Balance(ply) - amount //How much is left over after the transaction?
-        if not self.Settings.TakeIfOver and leftOver < 0 then //If true, then do not take the balance if the player cannot afford it
+        local leftOver = self:Balance(ply) - amount --How much is left over after the transaction?
+        if not self.Settings.TakeIfOver and leftOver < 0 then --If true, then do not take the balance if the player cannot afford it
             return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge)
         end
-        self:SetFunction(ply, math.Clamp(leftOver, 0, math.huge)) //Function to set new amount from balance
-        return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge) //Returns balance, debt
+        self:SetFunction(ply, math.Clamp(leftOver, 0, math.huge)) --Function to set new amount from balance
+        return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge) --Returns balance, debt
     end
     return nil
 end
 
-function DefaultMeta:CanAfford(ply, amount) //Uses Balance() and compares
+function DefaultMeta:CanAfford(ply, amount) --Uses Balance() and compares
     local has = self:Balance(ply)
     has = has - amount
-    return has >= 0, math.Clamp(-has, 0, math.huge) //Returns bool, debt
+    return has >= 0, math.Clamp(-has, 0, math.huge) --Returns bool, debt
 end
 
-function DefaultMeta:Balance(ply) //Returns the player's current balance. Nothing else.
+function DefaultMeta:Balance(ply) --Returns the player's current balance. Nothing else.
     return self:GetFunction(ply)
 end
 
-function DefaultMeta:Format(amount) //Returns a formatted string of the amount.
+function DefaultMeta:Format(amount) --Returns a formatted string of the amount.
     if isentity(amount) and amount:IsPlayer() then amount = self:Balance(amount) end
     local amount = self.Settings.ShowCommas and string.Comma(amount) or amount
     return self.Settings.SignAtStart and (self.Settings.Sign .. amount) or (amount .. self.Settings.Sign)
@@ -98,7 +98,7 @@ OverdoneServers:WaitForTicks(3, function()
             AddCSLuaFile(currencyFile)
             include(currencyFile)
         else
-            ErrorNoHalt("Error: Currency file EMPTY for \"" .. fileName .. "\"!\n") //TODO: change to pretty print
+            ErrorNoHalt("Error: Currency file EMPTY for \"" .. fileName .. "\"!\n") --TODO: change to pretty print
         end
     end
 end)

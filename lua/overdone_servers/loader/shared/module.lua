@@ -25,11 +25,11 @@ function MODULE:SetEnabled(enabled)
     return true
 end
 
-function MODULE:Enable() 
+function MODULE:Enable()
     return self:SetEnabled(true)
 end
 
-function MODULE:Disable() 
+function MODULE:Disable()
     return self:SetEnabled(false)
 end
 

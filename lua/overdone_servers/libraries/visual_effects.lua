@@ -23,14 +23,14 @@ function OverdoneServers.VisualEffects:BlinkClose(speed)
     top:SetPos(0, 0)
 
     function top:GetY()
-        local px, py = self:GetSize()
+        local _, py = self:GetSize()
         return py
     end
 
     function top:Paint(w,h)
-        draw.RoundedBox(0, 0, 0, w, h, Color(0,0,0,((self:GetY())/(ScrH/2))*255))
-        self:SetSize(ScrW, Lerp(RealFrameTime()*2*speed*(1+self:GetY()*0.008), self:GetY(), ScrH/2 + 100))
-        if self:GetY() >= ScrH*0.55 then eyesClosed = true end
+        draw.RoundedBox(0, 0, 0, w, h, Color(0,0,0,((self:GetY()) / (ScrH / 2)) * 255))
+        self:SetSize(ScrW, Lerp(RealFrameTime() * 2 * speed * (1 + (self:GetY() * 0.008)), self:GetY(), (ScrH / 2) + 100))
+        if self:GetY() >= ScrH * 0.55 then eyesClosed = true end
     end
 
     local bottom = isBlinking:Add("Panel")
