@@ -1,4 +1,4 @@
-if OverdoneServers then return end //Disables this file from being reloaded. (Can cause lots of issues)
+if OverdoneServers then return end -- Disables this file from being reloaded. (Can cause lots of issues)
 OverdoneServers = {}
 
 OverdoneServers.MainDir = "overdone_servers"
@@ -23,7 +23,9 @@ end
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_master_fonts.lua")
 
-include(OverdoneServers.LoaderDir .. "/server/load_resources.lua")
+if SERVER then
+    include(OverdoneServers.LoaderDir .. "/server/load_resources.lua")
+end
 
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/permissions.lua")
 

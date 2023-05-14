@@ -2,7 +2,7 @@ local CURRENCY = {} //Creates an empty table to be used for setting up the curre
 CURRENCY.Name = "BaseWars"
 
 function CURRENCY:GetFunction(ply) //Add the currency addon's function to return a player's balance here
-    return ply:GetMoney() 
+    return ply:GetMoney()
 end
 
 function CURRENCY:SetFunction(ply, amount) //Add the currency addon's function to set a player's balance here

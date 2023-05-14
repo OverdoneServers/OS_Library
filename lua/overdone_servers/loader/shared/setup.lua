@@ -1,16 +1,10 @@
---[[ 
-
-    ~~~ Notes ~~~
-
-]]
-
 AddCSLuaFile()
 function OverdoneServers:PrettyPrint(txt)
-	if SERVER then
-		MsgC(Color(251, 59, 91), txt .. "\n")
-	else
-		MsgC(Color(193, 193, 98), txt .. "\n")
-	end
+    if SERVER then
+        MsgC(Color(251, 59, 91), txt .. "\n")
+    else
+        MsgC(Color(193, 193, 98), txt .. "\n")
+    end
 end
 
 function OverdoneServers:ValidModuleName(name)
@@ -41,39 +35,45 @@ function OverdoneServers:PrintLoadingText(module, type)
 
     local displayName = istable(module) and (module.DisplayName or module.FolderName) or module
 
-    if module != self.Loading.lastModule then //TODO: make the name change the spacing of -----
+    if module != self.Loading.lastModule then -- TODO: make the name change the spacing of -----
         self:PrettyPrint("///////////////////////////////////////////////////")
-        self:PrettyPrint("//------------------ " .. ((istable(module) and OverdoneServers.Modules[module.FolderName] or nil) and "Reloading" or "Loading") .. " " .. (self:ValidModuleName(displayName) and displayName or "Invalid Name") .. " ---------------------//")
+        self:PrettyPrint(
+            "//------------------ " ..
+            ((istable(module) and OverdoneServers.Modules[module.FolderName] or nil) and "Reloading" or "Loading") ..
+            " " ..
+            (self:ValidModuleName(displayName) and displayName or "Invalid Name") ..
+            " ---------------------//"
+        )
         self:PrettyPrint("///////////////////////////////////////////////////")
         self.Loading.lastModule = module
         self.Loading.lastType = -0
     end
-    
+
     local sep = function() self:PrettyPrint("//                                               //") end
 
     if type == 1 and self.Loading.lastType != 1 then sep() self:PrettyPrint("//------------------ SERVER ---------------------//") sep() self.Loading.lastType = 1 end
-	if type == 2 and self.Loading.lastType != 2 then sep() self:PrettyPrint("//------------------ CLIENT ---------------------//") sep() self.Loading.lastType = 2 end
-	if type == 3 and self.Loading.lastType != 3 then sep() self:PrettyPrint("//------------------ SHARED ---------------------//") sep() self.Loading.lastType = 3 end
-	if type == 4 and self.Loading.lastType != 4 then sep() self:PrettyPrint("//------------------ FONTS ----------------------//") sep() self.Loading.lastType = 4 end
-	if type == 0 and self.Loading.lastType != 0 then sep() self:PrettyPrint("//------------------ CUSTOM ---------------------//") sep() self.Loading.lastType = 0 end
+    if type == 2 and self.Loading.lastType != 2 then sep() self:PrettyPrint("//------------------ CLIENT ---------------------//") sep() self.Loading.lastType = 2 end
+    if type == 3 and self.Loading.lastType != 3 then sep() self:PrettyPrint("//------------------ SHARED ---------------------//") sep() self.Loading.lastType = 3 end
+    if type == 4 and self.Loading.lastType != 4 then sep() self:PrettyPrint("//------------------ FONTS ----------------------//") sep() self.Loading.lastType = 4 end
+    if type == 0 and self.Loading.lastType != 0 then sep() self:PrettyPrint("//------------------ CUSTOM ---------------------//") sep() self.Loading.lastType = 0 end
 end
 
 function OverdoneServers:LoadLuaFile(module, f, type)
-    //Module can be accessed here by using OverdoneServers.IncludeData
+    -- Module can be accessed here by using OverdoneServers.IncludeData
 
     local fil = self.MainDir .. "/modules/" .. module .. "/" .. (type == 1 and "server" or type == 2 and "client" or type == 3 and "shared") .. "/" .. f
 
     local okay = true
     if not CLIENT then
-        if not file.Exists(fil, "LUA") then //TODO: Just have this replace the "Initialize" text
+        if not file.Exists(fil, "LUA") then -- TODO: Just have this replace the "Initialize" text
             f = f .. " - NOT FOUND"
             okay = false
-        elseif not (file.Size(fil, "LUA") > 0) then
+        elseif file.Size(fil, "LUA") <= 0 then
             f = f .. " - EMPTY"
             okay = false
         end
     end
-	self:PrettyPrint("// [ Initialize ]: " .. f .. string.rep(" ", 30 - f:len()) .. "//")
+    self:PrettyPrint("// [ Initialize ]: " .. f .. string.rep(" ", 30 - f:len()) .. "//")
 
     if okay then
         if type == 1 and SERVER then include(fil) end
@@ -89,33 +89,36 @@ function OverdoneServers:AddModule(moduleData)
     self.Modules2Load[moduleData.FolderName] = include(self.LoaderDir .. "/shared/module.lua")
 end
 
---[[
+/*
     Insted of removing values, this function will ADD data.
     Usage: Main table, metatable, should we overwrite data that exists
-]]--
+*/
 
 function OverdoneServers:AddMetaTable(tab, metatable, overwrite)
     for k,v in pairs(metatable) do
         if tab[k] == nil or overwrite then
             tab[k] = v
-        end 
+        end
     end
 end
 
 function OverdoneServers:LoadModule(module)
+
     local failed = nil
-    
+
     module.FontLocation = module.FontLocation or "OS:" .. module.FolderName .. ":"
     module.Networking = module.Networking or module.FontLocation
 
     if not istable(module.DataToLoad) then self:PrintLoadingText(module) return 2 end
 
     for type, files in pairs(istable(module.DataToLoad) and module.DataToLoad or {}) do
+
         for _, f in ipairs(files) do
-            if (not CLIENT or type != "Server") and type != "Materials" then 
+
+            if (not CLIENT or type != "Server") and type != "Materials" then
                 self:PrintLoadingText(module, type)
             end
-            
+
             if type == "Server" and SERVER then
                 if self:LoadLuaFile(module.FolderName, f, 1) == false then failed = 1 end
             elseif type == "Client" then
@@ -126,15 +129,18 @@ function OverdoneServers:LoadModule(module)
                 self:LoadFont(f, module.FontLocation)
             elseif type == "Materials" then
                 if isstring(f) then
-                    //TODO: Make this add all files in the specified directory
+                    -- TODO: Make this add all files in the specified directory
                 elseif istable(f) then
-                    //TODO: Make this add the specific file with resource.AddFile()
-                end 
+                    -- TODO: Make this add the specific file with resource.AddFile()
+                end
             end
+
         end
+
     end
-    
+
     return failed
+
 end
 
 function OverdoneServers:LoadFont(f, fontLocation)
@@ -146,10 +152,8 @@ function OverdoneServers:LoadFont(f, fontLocation)
     self:PrettyPrint("// [ Adding Font ]: " .. f[1] .. string.rep(" ", 29 - f[1]:len()) .. "//")
     if SERVER then resource.AddSingleFile("resource/fonts/" .. f[2]) end
     if CLIENT then
-        if f[3].noScale != true then
-            if f[3].size != nil then
-                f[3].size = ScreenScale(f[3].size)
-            end
+        if f[3].noScale != true and f[3].size != nil then
+            f[3].size = ScreenScale(f[3].size)
         end
         surface.CreateFont(fontLocation .. f[1], f[3])
     end
@@ -167,9 +171,9 @@ end
 
 function OverdoneServers:GetLibrary(name)
     name = string.lower(name)
-    if name == "enum" || name == "enums" then
+    if name == "enum" or name == "enums" then
         return include(OverdoneServers.LibrariesDir .. "/lua-enum.lua")
-    elseif name == "lua-semver" || name == "versions" || name == "version" || name == "versioning" then
+    elseif name == "lua-semver" or name == "versions" or name == "version" or name == "versioning" then
         return include(OverdoneServers.LibrariesDir .. "/lua-semver.lua")
     else
         error("Invalid Library used: \"" .. name .. "\"")
@@ -178,7 +182,7 @@ function OverdoneServers:GetLibrary(name)
 end
 
 function OverdoneServers:WaitForTicks(ticks2wait, func)
-    for i=1,ticks2wait do
+    for i = 1,ticks2wait do
         local f = func
         func = function() timer.Simple(0, f) end
     end
@@ -204,11 +208,11 @@ elseif CLIENT then
 end
 
 for _,p in ipairs(player.GetHumans()) do
-	hook.Run("OverdoneServers:PlayerReady", p)
+    hook.Run("OverdoneServers:PlayerReady", p)
 end
 
 local lua_semver = OverdoneServers:GetLibrary("versioning")
-function OverdoneServers:CompareVersions(v1, v2) // Returns is V1 Greater or Equal to V2 and the reason that it returned what value
+function OverdoneServers:CompareVersions(v1, v2) -- Returns is V1 Greater or Equal to V2 and the reason that it returned what value
     assert(isstring(v1) and isstring(v2), "Both Versions Must Be Strings!")
     return lua_semver(v1) >= lua_semver(v2)
 end
