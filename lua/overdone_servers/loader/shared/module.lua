@@ -57,10 +57,17 @@ function MODULE:HasPermission(ply, permission)
     return OverdoneServers:HasPermission(ply, ModuleData.FolderName .. "_" .. permission)
 end
 
+MODULE.DebugEntries = {}
+
 OverdoneServers:AddMetaTable(ModuleData, MODULE)
 
 function ModuleData:Font(fontName)
     return self.FontLocation .. fontName
+end
+
+function ModuleData:AddDebugEntry(name, description, funcDo, funcGet)
+    self.DebugEntries[name] =
+        {Description = description, FuncDo = funcDo, FuncGet = funcGet}
 end
 
 OverdoneServers.IncludeData = nil

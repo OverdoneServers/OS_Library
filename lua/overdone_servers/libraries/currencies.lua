@@ -103,6 +103,8 @@ OverdoneServers:WaitForTicks(3, function()
     end
 end)
 
+--[[
+
 timer.Simple(3, function()
     local currency = OverdoneServers.Currencies:GetCurrency("SH_PointshopStandard")
     for _,ply in ipairs(player.GetHumans()) do
@@ -117,3 +119,5 @@ timer.Simple(3, function()
         print(ply, "Current", currency:Format(currency:Balance(ply)))
     end
 end)
+
+]]
