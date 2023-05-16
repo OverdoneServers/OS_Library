@@ -57,6 +57,8 @@ function MODULE:HasPermission(ply, permission)
     return OverdoneServers:HasPermission(ply, ModuleData.FolderName .. "_" .. permission)
 end
 
+MODULE.Data = {}
+
 MODULE.DebugEntries = {}
 
 OverdoneServers:AddMetaTable(ModuleData, MODULE)
