@@ -19,6 +19,7 @@ end
 
 local function CheckModules2Load()
     for k, module in pairs(OverdoneServers.Modules2Load) do
+        OverdoneServers.Modules[k] = module
         
         -- Check if module requires other modules --
         local okayToLoad = true
@@ -108,10 +109,10 @@ local function CheckModules2Load()
         OverdoneServers:PrettyPrint("///////////////////////////////////////////////////")
         if loaded == 1 then 
             OverdoneServers:PrettyPrint("////////////// Error Loading Module ///////////////")
+            OverdoneServers.Modules[k] = nil
         elseif loaded == 2 then
             OverdoneServers:PrettyPrint("//////////////// Missing DataToLoad ///////////////")
-        else
-            OverdoneServers.Modules[k] = module
+            OverdoneServers.Modules[k] = nil
         end
         OverdoneServers:PrettyPrint("///////////////////////////////////////////////////")
         OverdoneServers.Modules2Load[k] = nil
