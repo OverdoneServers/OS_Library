@@ -65,9 +65,9 @@ function ModuleData:Font(fontName)
     return self.FontLocation .. fontName
 end
 
-function ModuleData:AddDebugEntry(name, description, funcDo, funcGet)
+function ModuleData:AddDebugEntry(name, description, funcDo, funcGet, options)
     self.DebugEntries[name] =
-        {Description = description, FuncDo = funcDo, FuncGet = funcGet}
+        {Description = description, FuncDo = funcDo, FuncGet = funcGet, Options = options}
 end
 
 OverdoneServers.IncludeData = nil
