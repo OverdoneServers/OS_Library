@@ -12,7 +12,7 @@ if SERVER then
     end
 
     function OverdoneServers:AddPermission(permission, defaultRank, displayName)
-        OverdoneServers:WaitForTicks(3, function()
+        OverdoneServers:WaitForTicks(3, function() -- TODO: Is this wait necessary?
 
             if not (isstring(permission) or isstring(defaultRank) or isstring(displayName)) then
                 error("Overdone Servers: Permission failed to add.\n" ..
