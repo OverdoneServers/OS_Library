@@ -33,18 +33,19 @@ function OverdoneServers:PrintLoadingText(module, type)
         type = 0
     end
 
-    local displayName = istable(module) and (module.DisplayName or module.FolderName) or module
+    local displayName = istable(module) and module.DisplayName or isstring(module) and module or "Invalid Name"
 
     if module != self.Loading.lastModule then -- TODO: make the name change the spacing of -----
         self:PrettyPrint("///////////////////////////////////////////////////")
         self:PrettyPrint(
             "//------------------ " ..
-            ((istable(module) and OverdoneServers.Modules[module.FolderName] or nil) and "Reloading" or "Loading") ..
+            ((istable(module) and module.FinishedLoading or nil) and "Reloading" or "Loading") ..
             " " ..
             (self:ValidModuleName(displayName) and displayName or "Invalid Name") ..
             " ---------------------//"
         )
         self:PrettyPrint("///////////////////////////////////////////////////")
+        if (istable(module)) then module.FinishedLoading = true end
         self.Loading.lastModule = module
         self.Loading.lastType = -0
     end
@@ -77,8 +78,8 @@ function OverdoneServers:LoadLuaFile(module, f, type)
 
     if okay then
         if type == 1 and SERVER then include(fil) end
-        if type == 2 then AddCSLuaFile(fil) if CLIENT then include(fil) end end
-        if type == 3 then AddCSLuaFile(fil) include(fil) end
+        if type == 2 then if SERVER then AddCSLuaFile(fil) end if CLIENT then include(fil) end end
+        if type == 3 then if SERVER then AddCSLuaFile(fil) end if CLIENT then include(fil) end end
     else
         return false
     end
@@ -106,15 +107,39 @@ function OverdoneServers:LoadModule(module)
 
     local failed = nil
 
-    module.FontLocation = module.FontLocation or "OS:" .. module.FolderName .. ":"
-    module.Networking = module.Networking or module.FontLocation
+    -- TODO: default names, hooks, and networking, should be moved to another file. Possibly module.lua
+
+    local defaultName = "OS:" .. module.FolderName .. ":"
+    if (not module.FontLocation) then module.FontLocation = defaultName end
+    if (not module.NetworkPrefix) then module.NetworkPrefix = defaultName end
+    if (not module.HookPrefix) then module.HookPrefix = defaultName end
+
+    function module:HookAdd(...) 
+        local args = {...}
+        args[2] = self.HookPrefix .. args[2]
+        hook.Add(unpack(args))
+    end
+
+    function module:HookRemove(eventName, identifier)
+        hook.Remove(eventName, self.HookPrefix .. identifier)
+    end
+
+    function module:AddNetworkString(messageName)
+        util.AddNetworkString(self.NetworkPrefix .. messageName)
+    end
+
+    function module:NetStart(messageName, ...)
+        net.Start(self.NetworkPrefix .. messageName, ...)
+    end
+    
+    function module:NetReceive(messageName, callback)
+        net.Receive(self.NetworkPrefix .. messageName, callback)
+    end
 
     if not istable(module.DataToLoad) then self:PrintLoadingText(module) return 2 end
 
     for type, files in pairs(istable(module.DataToLoad) and module.DataToLoad or {}) do
-
         for _, f in ipairs(files) do
-
             if (not CLIENT or type != "Server") and type != "Materials" then
                 self:PrintLoadingText(module, type)
             end
@@ -134,9 +159,7 @@ function OverdoneServers:LoadModule(module)
                     -- TODO: Make this add the specific file with resource.AddFile()
                 end
             end
-
         end
-
     end
 
     return failed

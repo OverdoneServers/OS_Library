@@ -72,6 +72,8 @@ function ModuleData:AddDebugEntry(name, description, funcDo, funcGet, options)
         {Description = description, FuncDo = funcDo, FuncGet = funcGet, Options = options}
 end
 
+ModuleData.FinishedLoading = false
+
 OverdoneServers.IncludeData = nil
 
 return ModuleData
