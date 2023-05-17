@@ -2,7 +2,6 @@ local MODULE = {}
 
 MODULE.DisplayName = "OS: Casino"
 MODULE.FolderName = "os_casino"
-MODULE.Hidden = true
 
 MODULE.Version = "1.0.0"
 
