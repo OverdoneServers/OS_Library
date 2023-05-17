@@ -79,7 +79,7 @@ function OverdoneServers:LoadLuaFile(module, f, type)
     if okay then
         if type == 1 and SERVER then include(fil) end
         if type == 2 then if SERVER then AddCSLuaFile(fil) end if CLIENT then include(fil) end end
-        if type == 3 then if SERVER then AddCSLuaFile(fil) end if CLIENT then include(fil) end end
+        if type == 3 then if SERVER then AddCSLuaFile(fil) end include(fil) end
     else
         return false
     end
