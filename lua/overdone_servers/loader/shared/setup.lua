@@ -7,6 +7,25 @@ function OverdoneServers:PrettyPrint(txt)
     end
 end
 
+OverdoneServers.ConsoleColors = {
+    BLACK = Color(0,0,0),
+    DARK_BLUE = Color(0,0,151),
+    DARK_GREEN = Color(0,151,0),
+    LIGHT_BLUE = Color(0,151,151),
+    DARK_RED = Color(151,0,0),
+    PURPLE = Color(151,0,151),
+    DARK_YELLOW = Color(151,151,0),
+    GRAY = Color(151,151,151),
+    LIGHT_GRAY = Color(240,240,240),
+    BLUE = Color(0,0,240),
+    GREEN = Color(0,240,0),
+    CYAN = Color(0,240,240),
+    RED = Color(240,0,0),
+    MAGENTA = Color(240,0,240),
+    YELLOW = Color(240,240,0),
+    WHITE = Color(255,255,255)
+}
+
 function OverdoneServers:ValidModuleName(name)
     return name != "" and name != " " and name != ""
 end
