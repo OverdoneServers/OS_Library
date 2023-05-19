@@ -1,7 +1,50 @@
 OverdoneServers.Currencies = {}
 
+local Currency = {}
+
+Currency.__index = Currency
+
+function Currency:GetFunction(ply) return 0 end
+function Currency:SetFunction(ply, amount) end
+
+function Currency:Add(ply, amount) --This should deposit an amount to the player's balance
+    if SERVER then
+        self:SetFunction(ply, self:Balance(ply) + amount) --Add function to add the amount
+        return self:Balance(ply) --Returns the new balance
+    end
+    return nil
+end
+
+function Currency:Take(ply, amount) --This should withdraw amounts from the player's balance
+    if SERVER then
+        local leftOver = self:Balance(ply) - amount --How much is left over after the transaction?
+        if not self.Settings.TakeIfOver and leftOver < 0 then --If true, then do not take the balance if the player cannot afford it
+            return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge)
+        end
+        self:SetFunction(ply, math.Clamp(leftOver, 0, math.huge)) --Function to set new amount from balance
+        return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge) --Returns balance, debt
+    end
+    return nil
+end
+
+function Currency:CanAfford(ply, amount) --Uses Balance() and compares
+    local has = self:Balance(ply)
+    has = has - amount
+    return has >= 0, math.Clamp(-has, 0, math.huge) --Returns bool, debt
+end
+
+function Currency:Balance(ply) --Returns the player's current balance. Nothing else.
+    return self:GetFunction(ply)
+end
+
+function Currency:Format(amount) --Returns a formatted string of the amount.
+    if isentity(amount) and amount:IsPlayer() then amount = self:Balance(amount) end
+    local amount = self.Settings.ShowCommas and string.Comma(amount) or amount
+    return self.Settings.SignAtStart and (self.Settings.Sign .. amount) or (amount .. self.Settings.Sign)
+end
+
 function OverdoneServers.Currencies:AddCurrency(currencyName, data)
-    OverdoneServers.Currencies:AddDefaultMeta(data)
+    setmetatable(data, Currency)
     OverdoneServers.Currencies[currencyName] = data
     return OverdoneServers.Currencies[currencyName]
 end
@@ -50,50 +93,9 @@ function OverdoneServers.Currencies:Format(currencyName, amount)
     return nil
 end
 
-local DefaultMeta = {}
-function DefaultMeta:Add(ply, amount) --This should deposit an amount to the player's balance
-    if SERVER then
-        self:SetFunction(ply, self:Balance(ply) + amount) --Add function to add the amount
-        return self:Balance(ply) --Returns the new balance
-    end
-    return nil
-end
-
-function DefaultMeta:Take(ply, amount) --This should withdraw amounts from the player's balance
-    if SERVER then
-        local leftOver = self:Balance(ply) - amount --How much is left over after the transaction?
-        if not self.Settings.TakeIfOver and leftOver < 0 then --If true, then do not take the balance if the player cannot afford it
-            return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge)
-        end
-        self:SetFunction(ply, math.Clamp(leftOver, 0, math.huge)) --Function to set new amount from balance
-        return self:Balance(ply), math.Clamp(-leftOver, 0, math.huge) --Returns balance, debt
-    end
-    return nil
-end
-
-function DefaultMeta:CanAfford(ply, amount) --Uses Balance() and compares
-    local has = self:Balance(ply)
-    has = has - amount
-    return has >= 0, math.Clamp(-has, 0, math.huge) --Returns bool, debt
-end
-
-function DefaultMeta:Balance(ply) --Returns the player's current balance. Nothing else.
-    return self:GetFunction(ply)
-end
-
-function DefaultMeta:Format(amount) --Returns a formatted string of the amount.
-    if isentity(amount) and amount:IsPlayer() then amount = self:Balance(amount) end
-    local amount = self.Settings.ShowCommas and string.Comma(amount) or amount
-    return self.Settings.SignAtStart and (self.Settings.Sign .. amount) or (amount .. self.Settings.Sign)
-end
-
-function OverdoneServers.Currencies:AddDefaultMeta(tbl)
-    OverdoneServers:AddMetaTable(tbl, DefaultMeta)
-end
-
 OverdoneServers:WaitForTicks(3, function()
-    for _, fileName in ipairs(file.Find(OverdoneServers.MainDir .. "/currencies" .. "/*.lua", "LUA")) do
-        local currencyFile = OverdoneServers.MainDir .. "/currencies" .. "/" .. fileName
+    for _, fileName in ipairs(file.Find(OverdoneServers.CurrenciesDir .. "/*.lua", "LUA")) do
+        local currencyFile = OverdoneServers.CurrenciesDir .. "/" .. fileName
         if CLIENT or file.Size(currencyFile, "LUA") > 0 then
             AddCSLuaFile(currencyFile)
             include(currencyFile)

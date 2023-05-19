@@ -1,7 +1,6 @@
 local MODULE = {}
 
 MODULE.DisplayName = "OS: Casino"
-MODULE.FolderName = "os_casino"
 
 MODULE.Version = "1.0.0"
 
@@ -37,4 +36,4 @@ MODULE.DataToLoad = {
     }
 }
 
-OverdoneServers:AddModule(MODULE)
+return MODULE

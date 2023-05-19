@@ -3,9 +3,11 @@ OverdoneServers = {}
 
 OverdoneServers.MainDir = "overdone_servers"
 OverdoneServers.ModulesLocation = OverdoneServers.MainDir .. "/modules"
+OverdoneServers.ModuleFile = "_module.lua"
 OverdoneServers.LoaderDir = OverdoneServers.MainDir .. "/loader"
 OverdoneServers.ConfigDir = OverdoneServers.MainDir .. "/configuration"
 OverdoneServers.LibrariesDir = OverdoneServers.MainDir .. "/libraries"
+OverdoneServers.CurrenciesDir = OverdoneServers.MainDir .. "/currencies"
 
 if OverdoneServers.FinishedLoading then print("Reloading OverdoneServers") end
 
