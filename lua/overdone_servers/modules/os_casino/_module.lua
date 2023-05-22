@@ -4,10 +4,6 @@ MODULE.DisplayName = "OS: Casino"
 
 MODULE.Version = "1.0.0"
 
-OverdoneServers.OS_Casino = OverdoneServers.OS_Casino or {}
-MODULE.PublicVar = OverdoneServers.OS_Casino
-OverdoneServers.OS_Casino.Module = MODULE
-
 MODULE.DataToLoad = {
     Client = {
         "card_builder.lua",

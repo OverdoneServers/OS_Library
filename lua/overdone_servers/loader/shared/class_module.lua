@@ -47,15 +47,13 @@ function Module:Disable()
     return self:SetEnabled(false)
 end
 
-function Module:Awake() end
+function Module:Awake() end -- called when _modules file is read
 
-function Module:Start() end
+function Module:Start() end -- called after all modules have been loaded
 
-function Module:OnEnable() end
+function Module:OnEnable() end -- called when module has loaded
 
 function Module:OnDisable() end
-
-function Module:OnRemove() end
 
 if SERVER then
     function Module:AddPermission(permission, defaultRank, displayName)

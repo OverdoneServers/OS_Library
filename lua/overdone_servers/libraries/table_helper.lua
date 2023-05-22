@@ -40,51 +40,64 @@ function OverdoneServers.TableHelper:InsertValue(value, tbl, ...) --Allows you t
     end
 end
 
-function OverdoneServers.TableHelper:HasValue(t, val) --Unlike the default table.HasValue() function, it will return the key where the value was found and will return nil otherwise
-    for k, v in pairs(t) do
+function OverdoneServers.TableHelper:HasValue(tbl, val) --Unlike the default table.HasValue() function, it will return the key where the value was found and will return nil otherwise
+    for k, v in pairs(tbl) do
     	if (v == val) then return k end
     end
     return nil
 end
 
-function OverdoneServers.TableHelper:RemoveIfFound(t, val) --Removes value if found
-    local key = self:HasValue(t, val)
+function OverdoneServers.TableHelper:RemoveIfFound(tbl, val) --Removes value if found
+    local key = self:HasValue(tbl, val)
     if key != nil then
-        table.RemoveByValue(t, val)
+        table.RemoveByValue(tbl, val)
         return key
     end
     return nil
 end
 
-function OverdoneServers.TableHelper:RemoveValThenAdd(t, val) --Removes value if found then adds to end of table
-    local found = OverdoneServers.TableHelper:RemoveIfFound(t, val) != nil
-    local pos = table.insert(t, val)
+function OverdoneServers.TableHelper:RemoveValThenAdd(tbl, val) --Removes value if found then adds to end of table
+    local found = OverdoneServers.TableHelper:RemoveIfFound(tbl, val) != nil
+    local pos = table.insert(tbl, val)
     return pos, found
 end
 
-function OverdoneServers.TableHelper:Purge(t1, t2) --Removes value if found in the other table. Returns what keys were removed from table1 (in ipairs) and how big that table is
+function OverdoneServers.TableHelper:Purge(tbl1, tbl2) --Removes value if found in the other table. Returns what keys were removed from table1 (in ipairs) and how big that table is
     local vals = {}
 
-    for _,v in pairs(t2) do
+    for _,v in pairs(tbl2) do
         vals[v] = true
     end
 
     local keysRemoved = {}
     local count = 0 --Allows you to not use table.Count() (aka faster since your counting while building the table)
 
-    for k,v in pairs(t1) do
+    for k,v in pairs(tbl1) do
         if vals[v] then
             table.insert(keysRemoved, k)
             count = count + 1
-            t1[k] = nil
+            tbl1[k] = nil
         end
     end
 
     return keysRemoved, count
 end
 
+function OverdoneServers.TableHelper:FindKeyByValue(tbl, targetValue)
+    for key, value in pairs(tbl) do
+        if value == targetValue then
+            return key
+        end
+    end
+    return nil
+end
 
-
-
-
-
+function OverdoneServers.TableHelper:FindKeysByValue(tbl, targetValue)
+    local keys = {}
+    for key, value in pairs(tbl) do
+        if value == targetValue then
+            table.insert(keys, key)
+        end
+    end
+    return keys
+end

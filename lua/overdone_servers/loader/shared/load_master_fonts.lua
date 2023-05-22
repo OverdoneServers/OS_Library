@@ -1,4 +1,4 @@
-OverdoneServers:PrintLoadingText("MASTER", "font")
+OverdoneServers:PrintLoadingText(OverdoneServers.LibraryModuleName, OverdoneServers.ModuleLoadType.FONTS)
 OverdoneServers:LoadFont( 
     {"MissingTexture", "good-times-rg.ttf",
         {

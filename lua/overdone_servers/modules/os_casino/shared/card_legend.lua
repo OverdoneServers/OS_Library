@@ -1,5 +1,6 @@
-local OS_Casino = OverdoneServers.OS_Casino
-local module = OS_Casino.Module
+local module = OverdoneServers:GetModule("os_casino")
+local OS_Casino = module.Data
+
 local enum = OverdoneServers:GetLibrary("enum")
 
 OS_Casino.ENUMS = OS_Casino.ENUMS or {}

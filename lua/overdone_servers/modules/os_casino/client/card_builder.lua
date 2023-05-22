@@ -1,5 +1,5 @@
-local OS_Casino = OverdoneServers.OS_Casino
-local module = OS_Casino.Module
+local module = OverdoneServers:GetModule("os_casino")
+local OS_Casino = module.Data
 
 local function CardKind(kind)
     if kind < 10 then return kind + 1
