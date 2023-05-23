@@ -8,6 +8,25 @@ function OverdoneServers:PrettyPrint(txt)
     end
 end
 
+OverdoneServers.Loading = {}
+
+OverdoneServers.Loading.Space = " "
+if (system.IsWindows() or system.IsLinux()) then
+    OverdoneServers.Loading.Align = TEXT_ALIGN_CENTER
+    OverdoneServers.Loading.ModuleVerticalLine = "║"
+    OverdoneServers.Loading.ModuleHeader = "╔" .. string.rep("═", OverdoneServers.ConsoleWidth-2) .. "╗"
+    OverdoneServers.Loading.ModuleFooter = "╚" .. string.rep("═", OverdoneServers.ConsoleWidth-2) .. "╝"
+    OverdoneServers.Loading.ModuleHeaderSeparator = "╠" .. string.rep("═", OverdoneServers.ConsoleWidth-2) .. "╣"
+    OverdoneServers.Loading.ModuleDataSeparator = "╟" .. string.rep("─", OverdoneServers.ConsoleWidth-2) .. "╢"
+else
+    OverdoneServers.Loading.Align = TEXT_ALIGN_LEFT
+    OverdoneServers.Loading.ModuleVerticalLine = "|"
+    OverdoneServers.Loading.ModuleHeader = "|" .. string.rep("=", OverdoneServers.ConsoleWidth/2)
+    OverdoneServers.Loading.ModuleFooter = "|" .. string.rep("_", OverdoneServers.ConsoleWidth/2)
+    OverdoneServers.Loading.ModuleHeaderSeparator = "|" .. string.rep("=", OverdoneServers.ConsoleWidth/2)
+    OverdoneServers.Loading.ModuleDataSeparator = "|" .. string.rep("- ", OverdoneServers.ConsoleWidth/3)
+end
+
 OverdoneServers.ConsoleColors = {
     BLACK = Color(0,0,0),
     DARK_BLUE = Color(0,0,151),
@@ -95,12 +114,8 @@ OverdoneServers.ModuleLoadType = {
     end
 }
 
-OverdoneServers.Loading = {}
-OverdoneServers.Loading.lastModule = ""
-OverdoneServers.Loading.lastType = OverdoneServers.ModuleLoadType.UNKNOWN
-
-OverdoneServers.Loading.ModuleHeader = "╔" .. string.rep("═", OverdoneServers.ConsoleWidth-2) .. "╗"
-OverdoneServers.Loading.ModuleFooter = "╚" .. string.rep("═", OverdoneServers.ConsoleWidth-2) .. "╝"
+OverdoneServers.Loading.lastModule = "" -- Used for internal use only
+OverdoneServers.Loading.lastType = OverdoneServers.ModuleLoadType.UNKNOWN -- Used for internal use only
 
 function OverdoneServers:PrintLoadingText(module, type)
     local displayName = istable(module) and module.DisplayName or isstring(module) and module or "Invalid Name"
@@ -108,21 +123,25 @@ function OverdoneServers:PrintLoadingText(module, type)
     if module != self.Loading.lastModule then
         self:PrettyPrint(OverdoneServers.Loading.ModuleHeader)
         self:PrettyPrint(
-            "║" ..
+            OverdoneServers.Loading.ModuleVerticalLine ..
             self.BetterText:AlignString(((istable(module) and module.FinishedLoading or nil) and "Reloading" or "Loading") ..
             " " ..
-            (displayName or "Invalid Name"), OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_CENTER) ..
-            "║"
+            (displayName or "Invalid Name"), OverdoneServers.ConsoleWidth-2, OverdoneServers.Loading.Align) ..
+            (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
         )
-        self:PrettyPrint("╟" .. string.rep("─", OverdoneServers.ConsoleWidth-2) .. "╢")
+        self:PrettyPrint(OverdoneServers.Loading.ModuleHeaderSeparator)
         if (istable(module)) then module.FinishedLoading = true end
         self.Loading.lastModule = module
         self.Loading.lastType = OverdoneServers.ModuleLoadType.UNKNOWN
     end
 
     if type != self.Loading.lastType then
-        self:PrettyPrint("║" .. self.BetterText:AlignString(OverdoneServers.ModuleLoadType.ToString(type), OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_CENTER) .. "║")
-        self:PrettyPrint("║".. string.rep("-", OverdoneServers.ConsoleWidth-2) .."║")
+        self:PrettyPrint(
+            OverdoneServers.Loading.ModuleVerticalLine ..
+            self.BetterText:AlignString(OverdoneServers.ModuleLoadType.ToString(type), OverdoneServers.ConsoleWidth-2, OverdoneServers.Loading.Align) ..
+            (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
+        )
+        self:PrettyPrint(OverdoneServers.Loading.ModuleDataSeparator)
         self.Loading.lastType = type
     end
 end
@@ -130,7 +149,7 @@ end
 function OverdoneServers:LoadLuaFile(moduleDirectory, fileName, moduleLoadType)
     local fileToLoadPath = OverdoneServers.ModulesDir .. "/" .. moduleDirectory .. "/"
 
-        if moduleLoadType == OverdoneServers.ModuleLoadType.SERVER then
+        if moduleLoadType == OverdoneServers.ModuleLoadType.SERVER then -- TODO: use to string function in table
             fileToLoadPath = fileToLoadPath .. "server"
         elseif moduleLoadType == OverdoneServers.ModuleLoadType.CLIENT then
             fileToLoadPath = fileToLoadPath .. "client"
@@ -151,8 +170,11 @@ function OverdoneServers:LoadLuaFile(moduleDirectory, fileName, moduleLoadType)
         end
     end
 
-    OverdoneServers:PrettyPrint("║" .. OverdoneServers.BetterText:AlignString("[ Initialize ]: " .. fileName, OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT) .. "║")
-
+    OverdoneServers:PrettyPrint(
+        OverdoneServers.Loading.ModuleVerticalLine ..
+        OverdoneServers.BetterText:AlignString("[ Initialize ]: " .. fileName, OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT, OverdoneServers.Loading.Space) ..
+        (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
+    )
     if okay then
         if moduleLoadType == OverdoneServers.ModuleLoadType.SERVER and SERVER then
             include(fileToLoadPath)
@@ -175,7 +197,11 @@ function OverdoneServers:LoadFont(f, fontLocation)
         return
     end
 
-    OverdoneServers:PrettyPrint("║" .. OverdoneServers.BetterText:AlignString("[ Adding Font ]: " .. f[1], OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT) .. "║")
+    OverdoneServers:PrettyPrint(
+        OverdoneServers.Loading.ModuleVerticalLine ..
+        OverdoneServers.BetterText:AlignString("[ Adding Font ]: " .. f[1], OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT) ..
+        (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
+)
     if err then return end
     if SERVER then resource.AddSingleFile("resource/fonts/" .. f[2]) end
     if CLIENT then

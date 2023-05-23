@@ -118,14 +118,16 @@ function OverdoneServers.BetterText:AlignString(str, width, alignment, fillChar)
     fillChar = fillChar or " "
 
     if alignment == TEXT_ALIGN_LEFT then
-        return string.format("%-" .. width .. "s", str)
+        local remainingWidth = width - string.len(str)
+        return str .. string.rep(fillChar, remainingWidth)
     elseif alignment == TEXT_ALIGN_CENTER then
         local remainingWidth = width - string.len(str)
         local leftPadding = math.floor(remainingWidth / 2)
         local rightPadding = remainingWidth - leftPadding
         return string.rep(fillChar, leftPadding) .. str .. string.rep(fillChar, rightPadding)
     elseif alignment == TEXT_ALIGN_RIGHT then
-        return string.format("%" .. width .. "s", str)
+        local remainingWidth = width - string.len(str)
+        return string.rep(fillChar, remainingWidth) .. str
     else
         return str
     end
