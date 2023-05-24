@@ -95,6 +95,10 @@ function Module:AddNetworkString(messageName)
     util.AddNetworkString(self.NetworkPrefix .. messageName)
 end
 
+function Module:GetNetworkString(messageName)
+    return self.NetworkPrefix .. messageName
+end
+
 function Module:NetStart(messageName, ...)
     net.Start(self.NetworkPrefix .. messageName, ...)
 end
