@@ -169,15 +169,16 @@ function OverdoneServers:LoadLuaFile(moduleDirectory, fileName, moduleLoadType)
             okay = false
         end
     end
-
-    OverdoneServers:PrettyPrint(
-        OverdoneServers.Loading.ModuleVerticalLine ..
-        OverdoneServers.BetterText:AlignString("[ Initialize ]: " .. fileName, OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT, OverdoneServers.Loading.Space) ..
-        (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
-    )
+    if not CLIENT or moduleLoadType != OverdoneServers.ModuleLoadType.SERVER then
+        OverdoneServers:PrettyPrint(
+            OverdoneServers.Loading.ModuleVerticalLine ..
+            OverdoneServers.BetterText:AlignString("[ Initialize ]: " .. fileName, OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT, OverdoneServers.Loading.Space) ..
+            (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
+        )
+    end
     if okay then
-        if moduleLoadType == OverdoneServers.ModuleLoadType.SERVER and SERVER then
-            include(fileToLoadPath)
+        if moduleLoadType == OverdoneServers.ModuleLoadType.SERVER then
+            if (SERVER) then include(fileToLoadPath) end
         elseif moduleLoadType == OverdoneServers.ModuleLoadType.CLIENT then
             OverdoneServers:LoadClientFile(fileToLoadPath)
         elseif moduleLoadType == OverdoneServers.ModuleLoadType.SHARED then
