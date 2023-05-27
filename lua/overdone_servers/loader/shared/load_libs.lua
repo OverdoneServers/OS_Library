@@ -6,7 +6,7 @@ OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/better_text.lua
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/easingfunctions.lua")
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/lua-enum.lua")
 OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/currencies.lua")
-OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/prioritized_hooks.lua")
+OverdoneServers:LoadSharedFile(OverdoneServers.LibrariesDir .. "/stateful_hooks.lua")
 
 OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/2dvgui_extended.lua")
 OverdoneServers:LoadClientFile(OverdoneServers.LibrariesDir .. "/3d2dvgui.lua")
