@@ -102,7 +102,8 @@ local defaultHookTypes = {
                 local previousView = table.Copy(view)
 
                 for name, cv in pairs(SHooks.AllHooks[hookType].Hooks) do
-                    if SHooks:HookCanRun(cv.states) then
+                    local shouldRun = SHooks:HookCanRun(cv.states)
+                    if shouldRun then
                         local newView = cv.func(ply, view.origin, view.angles, view.fov)
 
                         for _, key in ipairs(viewKeys) do
@@ -115,7 +116,7 @@ local defaultHookTypes = {
                 end
                 
                 SHooks.AllHooks[hookType].Result = view
-
+                if (not shouldRun) then return end
                 return view
             end)
         end,
@@ -129,7 +130,8 @@ local defaultHookTypes = {
                 local previousOrigin, previousAngles = currentOrigin, currentAngles
 
                 for name, cv in pairs(SHooks.AllHooks[hookType].Hooks) do
-                    if SHooks:HookCanRun(cv.states) then
+                    local shouldRun = SHooks:HookCanRun(cv.states)
+                    if shouldRun then
                         local newOrigin, newAngles = cv.func(wep, vm, oldPos, oldAng, currentOrigin, currentAngles)
                         
                         if (newOrigin) then
@@ -145,7 +147,7 @@ local defaultHookTypes = {
                 end
 
                 SHooks.AllHooks[hookType].Result = {origin = currentOrigin, angles = currentAngles}
-
+                if (not shouldRun) then return end
                 return currentOrigin, currentAngles
             end)
         end,
