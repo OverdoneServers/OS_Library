@@ -92,26 +92,26 @@ local defaultHookTypes = {
 
             hook.Add(hookType, hookPrefix .. hookType, function(ply, pos, angles, fov)
                 if (table.IsEmpty(SHooks.AllHooks[hookType].Hooks)) then return end
+                local shouldReturn = false
 
                 -- The following checks are to make sure we don't run the hook if we don't need to
                 if GetViewEntity() ~= ply then return end
                 if not ply:Alive() then return end
                 if ply:InVehicle() then return end
 
-                local shouldReturn = false
                 local view = {origin = pos, angles = angles, fov = fov}
                 local previousView = table.Copy(view)
 
                 for name, cv in pairs(SHooks.AllHooks[hookType].Hooks) do
                     local shouldRun = SHooks:HookCanRun(cv.states)
                     if shouldRun then
-                        shouldReturn = true
                         local newView = cv.func(ply, view.origin, view.angles, view.fov)
 
                         for _, key in ipairs(viewKeys) do
                             if newView and newView[key] then
                                 view[key] = view[key] - previousView[key] + newView[key]
                                 previousView[key] = newView[key]
+                                shouldReturn = true
                             end
                         end
                     end
@@ -128,29 +128,28 @@ local defaultHookTypes = {
 
             hook.Add(hookType, hookPrefix .. hookType, function(wep, vm, oldPos, oldAng, pos, ang)
                 if (table.IsEmpty(SHooks.AllHooks[hookType].Hooks)) then return end
+                local shouldReturn = false
+
                 local currentOrigin, currentAngles = pos, ang
                 local previousOrigin, previousAngles = currentOrigin, currentAngles
-                
-                local shouldReturn = false
 
                 for name, cv in pairs(SHooks.AllHooks[hookType].Hooks) do
                     local shouldRun = SHooks:HookCanRun(cv.states)
                     if shouldRun then
-                        shouldReturn = true
                         local newOrigin, newAngles = cv.func(wep, vm, oldPos, oldAng, currentOrigin, currentAngles)
                         
                         if (newOrigin) then
                             currentOrigin = currentOrigin - previousOrigin + newOrigin
                             previousOrigin = newOrigin
+                            shouldReturn = true
                         end
 
                         if (newAngles) then
                             currentAngles = currentAngles - previousAngles + newAngles
                             previousAngles = newAngles
+                            shouldReturn = true
                         end
                     end
-
-                    --PrintTable(cv.states)
                 end
 
                 SHooks.AllHooks[hookType].Result = {origin = currentOrigin, angles = currentAngles}
