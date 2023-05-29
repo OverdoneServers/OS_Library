@@ -98,12 +98,14 @@ local defaultHookTypes = {
                 if not ply:Alive() then return end
                 if ply:InVehicle() then return end
 
+                local shouldReturn = false
                 local view = {origin = pos, angles = angles, fov = fov}
                 local previousView = table.Copy(view)
 
                 for name, cv in pairs(SHooks.AllHooks[hookType].Hooks) do
                     local shouldRun = SHooks:HookCanRun(cv.states)
                     if shouldRun then
+                        shouldReturn = true
                         local newView = cv.func(ply, view.origin, view.angles, view.fov)
 
                         for _, key in ipairs(viewKeys) do
@@ -116,7 +118,7 @@ local defaultHookTypes = {
                 end
                 
                 SHooks.AllHooks[hookType].Result = view
-                if (not shouldRun) then return end
+                if (not shouldReturn) then return end
                 return view
             end)
         end,
@@ -128,10 +130,13 @@ local defaultHookTypes = {
                 if (table.IsEmpty(SHooks.AllHooks[hookType].Hooks)) then return end
                 local currentOrigin, currentAngles = pos, ang
                 local previousOrigin, previousAngles = currentOrigin, currentAngles
+                
+                local shouldReturn = false
 
                 for name, cv in pairs(SHooks.AllHooks[hookType].Hooks) do
                     local shouldRun = SHooks:HookCanRun(cv.states)
                     if shouldRun then
+                        shouldReturn = true
                         local newOrigin, newAngles = cv.func(wep, vm, oldPos, oldAng, currentOrigin, currentAngles)
                         
                         if (newOrigin) then
@@ -144,10 +149,12 @@ local defaultHookTypes = {
                             previousAngles = newAngles
                         end
                     end
+
+                    --PrintTable(cv.states)
                 end
 
                 SHooks.AllHooks[hookType].Result = {origin = currentOrigin, angles = currentAngles}
-                if (not shouldRun) then return end
+                if (not shouldReturn) then return end
                 return currentOrigin, currentAngles
             end)
         end,
