@@ -1,6 +1,116 @@
-local PanelMeta = FindMetaTable("Panel")
+local DPanels3D = {} -- Library functions
 
-OverdoneServers.DPanels3D = {}
+function DPanels3D:_initialize()
+    self.GlobalData.Panels = {}
+
+    local renderOnScreen = false
+    hook.Add("Move","OS:TEST", function()
+        if input.WasKeyPressed(KEY_HOME) then
+            renderOnScreen = not renderOnScreen
+        end
+    end)
+
+    hook.Add("VehicleMove","OS:TEST", function()
+        if input.WasKeyPressed(KEY_HOME) then
+            renderOnScreen = not renderOnScreen
+        end
+    end)
+
+    hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
+        local toRender = {}
+        local toRemove = {}
+        for i = 1, #DPanels3D.GlobalData.Panels, 1 do
+            local pan = DPanels3D.GlobalData.Panels[i]
+            if not IsValid(pan) or (pan.OS_3D_Ent != nil and not IsValid(pan.OS_3D_Ent)) then
+                table.insert(toRemove, i)
+                --LocalPlayer():ChatPrint("REMOVED PANEL!! " .. (not IsValid(pan) and "Panel invalid" or "Entity removed"))
+            else
+                table.insert(toRender, pan) //TODO: in the panel check if a value exists with a panel. SetRenderParent/GetRenderParent it will force the parent to render first. (Parent Panel renders BEHIND pan)
+            end
+        end
+
+        local orderedRender = {}
+        for _,p in ipairs(toRender) do
+            local scale = isfunction(p.OS_3D_Scale) and p.OS_3D_Scale(p) or p.OS_3D_Scale
+
+            local centerOffset = p:OS_3D_CENTER(scale)
+            local x,y = p:GetSize()
+            x = scale*x or x
+            y = scale*y or y
+
+            local returnedAng = isfunction(p.OS_3D_Ang) and p.OS_3D_Ang(p, p.OS_3D_Ent) or p.OS_3D_Ang
+
+            local ang = p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or returnedAng
+
+
+            if IsValid(p.OS_3D_Ent) then
+                ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Forward(), returnedAng.x or 0)
+                ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Right(), returnedAng.y or 0)
+                ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Up(), returnedAng.z or 0)
+            end
+
+            local returnedPos = isfunction(p.OS_3D_Pos) and p.OS_3D_Pos(p.OS_3D_Ent) or p.OS_3D_Pos
+            local pos = ang:Forward()*p.OS_3D_PosOffset.x + ang:Right()*p.OS_3D_PosOffset.y + ang:Up()*p.OS_3D_PosOffset.z
+                + (p.OS_3D_Ent and
+                    p.OS_3D_Ent:LocalToWorld(returnedPos)
+                    - (p.OS_3D_CenterPanel and
+                        ang:Forward()*(x/2)
+                        + ang:Right()*(y/2)
+                    or Vector())
+                or p.OS_3D_Pos)
+
+            pos = (isvector(p.OS_3D_LockEntPos) and
+                p.OS_3D_LockEntPos
+                - (p.OS_3D_CenterPanel and
+                    ang:Forward()*(x/2)
+                    + ang:Right()*(y/2)
+                or Vector())
+            or pos)
+
+
+            p.OS_3D_LockEntPos = isvector(p.OS_3D_LockEntPos) and p.OS_3D_LockEntPos or (p.OS_3D_LockEntPos == true and p.OS_3D_PosOffset + (p.OS_3D_Ent and p.OS_3D_Ent:LocalToWorld(p.OS_3D_Pos) or Vector()) or nil)
+            //TODO: Why do panels FREAK OUT when placed on world (angle problem)
+            p.OS_3D_LockEntAng = isangle(p.OS_3D_LockEntAng) and p.OS_3D_LockEntAng or (p.OS_3D_LockEntAng == true and ang) or nil
+            ang = p.OS_3D_LockEntAng or ang
+
+            local playerPos = OverdoneServers.CalcView and OverdoneServers.CalcView.origin or LocalPlayer():EyePos()
+
+            table.insert(orderedRender, playerPos:DistToSqr(pos), {p, pos, ang, scale})
+        end
+
+        for _,t in SortedPairs(orderedRender, true) do
+            local p,pos,ang,scale = t[1], t[2], t[3], t[4]
+
+            --render.DrawLine(pos, pos + (ang:Forward() * 30), Color(255, 0, 0))
+            --render.DrawLine(pos, pos + (ang:Right() * 30), Color(0, 0, 255))
+            --render.DrawLine(pos, pos + (ang:Up() * 30), Color(0, 255, 0))
+
+            --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Forward() * 30), Color(255, 0, 0))
+            --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Right() * 30), Color(0, 0, 255))
+            --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Up() * 30), Color(0, 255, 0))
+            --if(p:GetName() == "TableInfoPanel") then print(pos) end
+
+            if not renderOnScreen then
+                vgui.Start3D2D(pos, ang, scale or 1)
+                    p:Paint3D2D()
+                vgui.End3D2D()
+            else
+                cam.Start2D()
+                    p:Paint3D2D()
+                cam.End2D()
+            end
+        end
+
+        for _,pID in ipairs(toRemove) do
+            local pan = DPanels3D.GlobalData.Panels[pID]
+            if IsValid(pan) then pan:Remove() end
+
+            table.remove(DPanels3D.GlobalData.Panels, pID)
+        end
+    end)
+end
+
+local PanelMeta = FindMetaTable("Panel")
 
 local function BuildButtonClickAndHoverEvent(but, is3D)
     function but:IsHovered()
@@ -12,7 +122,7 @@ local function BuildButtonClickAndHoverEvent(but, is3D)
 
     function but:RunMousePress(key)
         if is3D and self:OnMousePressed(key) then return end
-        
+
         if key == MOUSE_LEFT then self:DoClick() end
         if key == MOUSE_RIGHT then self:DoRightClick() end
 
@@ -29,11 +139,11 @@ local function BuildButtonClickAndHoverEvent(but, is3D)
     function but:MousePressed(key)
         if is3D then
             self:RunMousePress(key)
-        end  
+        end
 	end
 end
 
-function OverdoneServers.DPanels3D:CreateButton(parent, is3D)
+function DPanels3D:CreateButton(parent, is3D)
     local but = parent:Add("Panel")
     
     BuildButtonClickAndHoverEvent(but, is3D)
@@ -111,12 +221,12 @@ function OverdoneServers.DPanels3D:CreateButton(parent, is3D)
         self._curColor = self._curColor or OverdoneServers:ColorToVector(self.Color)
 
         self.hoverBorder = self.hoverBorder or 0
-        self.hoverBorder = Lerp(RealFrameTime() * 5, self.hoverBorder, self:IsHovered() and 255 or self.BorderColor.a)
-	            
+        self.hoverBorder = Lerp(FrameTime() * 5, self.hoverBorder, self:IsHovered() and 255 or self.BorderColor.a)
+
         if not self._clicking and self:IsHovered() then
-            self._curColor = LerpVector(RealFrameTime() * 2, self._curColor, hoverCol)
+            self._curColor = LerpVector(FrameTime() * 2, self._curColor, hoverCol)
         elseif self._curColor != colVec then
-            self._curColor = LerpVector(RealFrameTime() * 2, self._curColor, self:IsHovered() and hoverCol or colVec)
+            self._curColor = LerpVector(FrameTime() * 2, self._curColor, self:IsHovered() and hoverCol or colVec)
             if math.abs(self._curColor:DistToSqr(self:IsHovered() and hoverCol or colVec)) < 5 then
                 self._curColor = self:IsHovered() and hoverCol or colVec
                 self._clicking = false
@@ -207,7 +317,7 @@ function PanelMeta:OS_Start3D(position, angle, scale, entity, lockEntPos, lockEn
 
     self.OS_3D_CenterPanel = (centerPanel == nil or centerPanel) and true or false
 
-    table.insert(OverdoneServers.DPanels3D, self)
+    table.insert(DPanels3D.GlobalData.Panels, self)
     return true
 end
 --[[
@@ -216,113 +326,7 @@ local function GetAngleOffset(ang, offset)
 end
 ]]
 
-local renderOnScreen = false 
-hook.Add("Move","OS:TEST", function() 
-    if input.WasKeyPressed(KEY_HOME) then
-        renderOnScreen = not renderOnScreen
-    end
-end)
-
-hook.Add("VehicleMove","OS:TEST", function() 
-    if input.WasKeyPressed(KEY_HOME) then
-        renderOnScreen = not renderOnScreen
-    end
-end)
-
-hook.Add("PostDrawOpaqueRenderables", "OverdoneServers:Draw3DPanels", function()
-    local toRender = {}
-    local toRemove = {}
-    for i = 1, #OverdoneServers.DPanels3D, 1 do
-        local pan = OverdoneServers.DPanels3D[i]
-        if not IsValid(pan) or (pan.OS_3D_Ent != nil and not IsValid(pan.OS_3D_Ent)) then
-            table.insert(toRemove, i) 
-            --LocalPlayer():ChatPrint("REMOVED PANEL!! " .. (not IsValid(pan) and "Panel invalid" or "Entity removed"))
-        else
-            table.insert(toRender, pan) //TODO: in the panel check if a value exists with a panel. SetRenderParent/GetRenderParent it will force the parent to render first. (Parent Panel renders BEHIND pan)
-        end
-    end
-
-    local orderedRender = {}
-    for _,p in ipairs(toRender) do
-        local scale = isfunction(p.OS_3D_Scale) and p.OS_3D_Scale(p) or p.OS_3D_Scale
-
-        local centerOffset = p:OS_3D_CENTER(scale)
-        local x,y = p:GetSize()
-        x = scale*x or x
-        y = scale*y or y
-        
-        local returnedAng = isfunction(p.OS_3D_Ang) and p.OS_3D_Ang(p, p.OS_3D_Ent) or p.OS_3D_Ang
-
-        local ang = p.OS_3D_Ent and p.OS_3D_Ent:GetAngles() or returnedAng
-
-
-        if IsValid(p.OS_3D_Ent) then
-            ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Forward(), returnedAng.x or 0)
-            ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Right(), returnedAng.y or 0)
-            ang:RotateAroundAxis(p.OS_3D_Ent:GetAngles():Up(), returnedAng.z or 0)
-        end
-
-        local returnedPos = isfunction(p.OS_3D_Pos) and p.OS_3D_Pos(p.OS_3D_Ent) or p.OS_3D_Pos
-        local pos = ang:Forward()*p.OS_3D_PosOffset.x + ang:Right()*p.OS_3D_PosOffset.y + ang:Up()*p.OS_3D_PosOffset.z
-            + (p.OS_3D_Ent and
-                p.OS_3D_Ent:LocalToWorld(returnedPos)
-                - (p.OS_3D_CenterPanel and
-                    ang:Forward()*(x/2)
-                    + ang:Right()*(y/2)
-                or Vector())
-            or p.OS_3D_Pos)
-
-        pos = (isvector(p.OS_3D_LockEntPos) and
-            p.OS_3D_LockEntPos
-            - (p.OS_3D_CenterPanel and
-                ang:Forward()*(x/2)
-                + ang:Right()*(y/2)
-            or Vector())
-        or pos)
-
-
-        p.OS_3D_LockEntPos = isvector(p.OS_3D_LockEntPos) and p.OS_3D_LockEntPos or (p.OS_3D_LockEntPos == true and p.OS_3D_PosOffset + (p.OS_3D_Ent and p.OS_3D_Ent:LocalToWorld(p.OS_3D_Pos) or Vector()) or nil)
-        //TODO: Why do panels FREAK OUT when placed on world (angle problem)
-        p.OS_3D_LockEntAng = isangle(p.OS_3D_LockEntAng) and p.OS_3D_LockEntAng or (p.OS_3D_LockEntAng == true and ang) or nil
-        ang = p.OS_3D_LockEntAng or ang
-
-        local playerPos = OverdoneServers.CalcView and OverdoneServers.CalcView.origin or LocalPlayer():EyePos()
-
-        table.insert(orderedRender, playerPos:DistToSqr(pos), {p, pos, ang, scale})
-    end
-
-    for _,t in SortedPairs(orderedRender, true) do
-        local p,pos,ang,scale = t[1], t[2], t[3], t[4]
-
-        --render.DrawLine(pos, pos + (ang:Forward() * 30), Color(255, 0, 0))
-        --render.DrawLine(pos, pos + (ang:Right() * 30), Color(0, 0, 255))
-        --render.DrawLine(pos, pos + (ang:Up() * 30), Color(0, 255, 0))
-
-        --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Forward() * 30), Color(255, 0, 0))
-        --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Right() * 30), Color(0, 0, 255))
-        --render.DrawLine(p.OS_3D_Ent:GetPos(), p.OS_3D_Ent:GetPos() + (p.OS_3D_Ent:GetAngles():Up() * 30), Color(0, 255, 0))
-        --if(p:GetName() == "TableInfoPanel") then print(pos) end
-
-        if not renderOnScreen then
-            vgui.Start3D2D(pos, ang, scale or 1)
-		        p:Paint3D2D()
-	        vgui.End3D2D()
-        else
-            cam.Start2D()
-                p:Paint3D2D()
-            cam.End2D()
-        end
-    end
-    
-    for _,pID in ipairs(toRemove) do
-        local pan = OverdoneServers.DPanels3D[pID]
-        if IsValid(pan) then pan:Remove() end
-
-        table.remove(OverdoneServers.DPanels3D, pID)
-    end
-end)
-
-function OverdoneServers.DPanels3D:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset) //ent, pos/posOffset, ang/followplayer, keepUpright, bob (0 off, 100 size of panel), bobSpeed
+function DPanels3D:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, followplayer, offset) //ent, pos/posOffset, ang/followplayer, keepUpright, bob (0 off, 100 size of panel), bobSpeed
     bob = bob or 0 //TODO: may need to test if it equals false
     bobSpeed = bobSpeed or 3
     bobAmplitude = bobAmplitude or 5
@@ -354,7 +358,7 @@ end
 
 local arrowmat = Material("overdone_servers/os_library/panels/hover_panel_arrow.png", "UnlitGeneric")
 
-function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, offset, title, info, fontSize, titleFont, infoFont)
+function DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, keepUpright, offset, title, info, fontSize, titleFont, infoFont)
     --print(fontSize)
     local panel = self:CreateFloatingPanel(bob, bobSpeed, bobAmplitude, keepUpright, offset)
     --panel:SetSize(width*fontSize*1000,height*fontSize*1000)
@@ -485,3 +489,5 @@ function OverdoneServers.DPanels3D:CreateInfoPanel(bob, bobSpeed, bobAmplitude, 
 
     return panel
 end
+
+return DPanels3D

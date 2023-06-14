@@ -1,6 +1,6 @@
-OverdoneServers.DPanels2D = {}
+local DPanels2D = {}
 
-function OverdoneServers.DPanels2D:CloseButton(panel, manualPos) // panel to put close button on. bool if YOU have to set the position manually
+function DPanels2D:CloseButton(panel, manualPos) // panel to put close button on. bool if YOU have to set the position manually
     local closeOffset = 45
     local closeButtonColors = {Color(190, 100, 10, 255), Color(255, 50, 40, 255)}
     local closeButtonColor = closeButtonColors[1]
@@ -33,18 +33,18 @@ function OverdoneServers.DPanels2D:CloseButton(panel, manualPos) // panel to put
         if not manualPos then self:SetPos(pSizeX-self.SizeX*1.2, self.SizeY*0.2) end
         if self:IsHovered() then
             if closeOffset < 90 then
-                closeOffset = math.Clamp(closeOffset + RealFrameTime() * 250, 0, 135)
+                closeOffset = math.Clamp(closeOffset + FrameTime() * 250, 0, 135)
                 closeButtonColor = closeButtonColors[1]
             elseif closeOffset < 135 then
-                closeOffset = math.Clamp(closeOffset + RealFrameTime() * 250, 0, 135)
+                closeOffset = math.Clamp(closeOffset + FrameTime() * 250, 0, 135)
                 closeButtonColor = closeButtonColors[2]
             end
         else
             if closeOffset > 90 then
-                closeOffset = math.Clamp(closeOffset - RealFrameTime() * 250, 0, 135)
+                closeOffset = math.Clamp(closeOffset - FrameTime() * 250, 0, 135)
                 closeButtonColor = closeButtonColors[2]
             elseif closeOffset > 45 then
-                closeOffset = math.Clamp(closeOffset - RealFrameTime() * 250, 0, 135)
+                closeOffset = math.Clamp(closeOffset - FrameTime() * 250, 0, 135)
                 closeButtonColor = closeButtonColors[1]
             end
         end
@@ -89,3 +89,5 @@ function OverdoneServers.DPanels2D:CloseButton(panel, manualPos) // panel to put
 
     return closeButton
 end
+
+return DPanels2D

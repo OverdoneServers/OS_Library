@@ -1,6 +1,6 @@
-OverdoneServers.SVG = OverdoneServers.SVG or {}
+local SVG = {}
 
-function OverdoneServers.SVG:LoadSVG(path)
+function SVG:LoadSVG(path)
 
     local svgData = [[
         <svg id="autoscale" width="1699" height="713" viewBox="0 0 1699 713" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -48,21 +48,21 @@ function OverdoneServers.SVG:LoadSVG(path)
     html:SetHTML([[
         <html>
             <head>
-        		<style>
-        			html, body {
-        				/* ensure that all of the viewport is used */
-        				width: 100%;
-        				height: 100%;
+                <style>
+                    html, body {
+                        /* ensure that all of the viewport is used */
+                        width: 100%;
+                        height: 100%;
 
-        				/* ensure that no scrollbars appear */
-        				margin: 0;
-        				padding: 0;
+                        /* ensure that no scrollbars appear */
+                        margin: 0;
+                        padding: 0;
                     
-        				/* center SVG horizontally and vertically */
-        				display: flex;
-        				align-items: center;
-        				justify-content: center;
-        			}
+                        /* center SVG horizontally and vertically */
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
                     #autoscale {
                         /* ensure 1:1 aspect ratio, tweak 50 to make SVG larger */
                         width: 90vmin;
@@ -73,15 +73,15 @@ function OverdoneServers.SVG:LoadSVG(path)
                         max-width: 2048px;
                         max-height: 2048px;
                     }
-        		</style>
-        	</head>
-        	<body>
-        		<div>  
-        			]]
+                </style>
+            </head>
+            <body>
+                <div>  
+                    ]]
                     .. svgData ..
                     [[
-        		</div>
-        	</body>
+                </div>
+            </body>
         </html>
     ]])
 
@@ -89,19 +89,19 @@ function OverdoneServers.SVG:LoadSVG(path)
 end
 
 local function ConvertSVGMatToColoredMat(material)
-		local matdata =
-		{
-			["$basetexture"] = material:GetName(),
-			--["$basetexturetransform"]="center .5 .5 scale ".. material:Width()/select(1, self:GetSize()) .." ".. material:Height()/select(2, self:GetSize()) .." rotate 0 translate 0 0",
-			["$translucent"] = 1,
-			["$vertexcolor"] = 1, //Coloring
-			["$vertexalpha"] = 1, //Alpha channel
-		}
+        local matdata =
+        {
+            ["$basetexture"] = material:GetName(),
+            --["$basetexturetransform"]="center .5 .5 scale ".. material:Width()/select(1, self:GetSize()) .." ".. material:Height()/select(2, self:GetSize()) .." rotate 0 translate 0 0",
+            ["$translucent"] = 1,
+            ["$vertexcolor"] = 1, //Coloring
+            ["$vertexalpha"] = 1, //Alpha channel
+        }
 
-		return CreateMaterial("overdoneservers_" .. string.Replace(material:GetName(), "__vgui_texture_", ""), "UnlitGeneric", matdata)
+        return CreateMaterial("overdoneservers_" .. string.Replace(material:GetName(), "__vgui_texture_", ""), "UnlitGeneric", matdata)
 end
 
-function OverdoneServers.SVG:RenderSVG(spritePanel)
+function SVG:RenderSVG(spritePanel)
     if spritePanel._SVG_RenderStart == nil then return end
     if spritePanel._SVG_RenderStart + 1 > RealTime() then
         if IsValid(spritePanel._SVG_HTML_Panel) then
@@ -121,7 +121,7 @@ function OverdoneServers.SVG:RenderSVG(spritePanel)
     end
 end
 
-function OverdoneServers.SVG:SetSVG(spritePanel, path)
+function SVG:SetSVG(spritePanel, path)
     --LocalPlayer():ChatPrint("Loading: " .. path)
 
     spritePanel._SVG_RenderStart = RealTime()
@@ -132,7 +132,7 @@ function OverdoneServers.SVG:SetSVG(spritePanel, path)
     function spritePanel:Paint(w,h)
         if self.PrePaint then self:PrePaint(w,h) end
 
-        OverdoneServers.SVG:RenderSVG(self)
+        SVG:RenderSVG(self)
         self._SVG_DefPaint(self, w,h)
         
         if self.OnPaint then self:OnPaint(w,h) end
@@ -140,7 +140,7 @@ function OverdoneServers.SVG:SetSVG(spritePanel, path)
     end
 end
 
-function OverdoneServers.SVG:GetMaterial(path, callback)
+function SVG:GetMaterial(path, callback)
     if not isfunction(callback) then return end
     local svg = self:LoadSVG(path)
     local timerName = "OverdoneServers.SVG:GetMaterial:" .. tostring(callback) .. ":"
@@ -166,24 +166,24 @@ function OverdoneServers.SVG:GetMaterial(path, callback)
     end)
 end
 
-OverdoneServers.SVG:GetMaterial([[
+SVG:GetMaterial([[
 <svg width="1" height="1" viewBox="0 0 1 1" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="1" height="1" fill="white"/>
 </svg>
 ]], function(material)
     if material:IsError() then ErrorNoHalt("Overdone Servers: Error building white square!") end
-    OverdoneServers.SVG.WhiteSquare = material
+    SVG.WhiteSquare = material
 end)
 
-OverdoneServers.SVG.Error = Material("") //aka missing texture
+SVG.Error = Material("") //aka missing texture
 
-function OverdoneServers.SVG:CacheMaterials(module, matsTable)
-    if not module or not isstring(module.FolderName) or not istable(table) then return false end
-    if not istable(module.Materials) then module.Materials = {} end
+function SVG:CacheMaterials(module, matsTable)
+    if not module or not isstring(module.FolderName) or not istable(matsTable) then return false end
+    module.Materials = module.Materials or {}
     
     local function CacheMats()
         for name,data in pairs(matsTable) do
-            OverdoneServers.SVG:GetMaterial(data, function(material)
+            SVG:GetMaterial(data, function(material)
                 module.Materials[name] = material
             end)
         end
@@ -193,9 +193,11 @@ function OverdoneServers.SVG:CacheMaterials(module, matsTable)
         timer.Simple(30, CacheMats)
     else
         hook.Add("DrawOverlay", "OverdoneServers:" .. module.FolderName .. ":PreCache:Materials", function()
-    		CacheMats()
+            CacheMats()
             hook.Remove("DrawOverlay", "OverdoneServers:" .. module.FolderName .. ":PreCache:Materials")
         end)
     end
     return true
 end
+
+return SVG

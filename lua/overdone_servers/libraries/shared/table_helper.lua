@@ -1,6 +1,6 @@
-OverdoneServers.TableHelper = {}
+local TableHelper = {}
 
-function OverdoneServers.TableHelper:GetValue(tbl, ...) --Allows you to get a value wihin a table within a table (etc) while checking if its nil each time
+function TableHelper:GetValue(tbl, ...) --Allows you to get a value wihin a table within a table (etc) while checking if its nil each time
     local args = {...}
     local tablePos = tbl
 
@@ -12,7 +12,7 @@ function OverdoneServers.TableHelper:GetValue(tbl, ...) --Allows you to get a va
     return tablePos
 end
 
-function OverdoneServers.TableHelper:SetValue(value, tbl, ...) --Allows you to set a value at a given positon in a table and will create the keys that are required
+function TableHelper:SetValue(value, tbl, ...) --Allows you to set a value at a given positon in a table and will create the keys that are required
     local args = {...}
     local tablePos = tbl
     
@@ -26,7 +26,7 @@ function OverdoneServers.TableHelper:SetValue(value, tbl, ...) --Allows you to s
     end
 end
 
-function OverdoneServers.TableHelper:InsertValue(value, tbl, ...) --Allows you to insert a value at a given positon in a table and will create the keys that are required
+function TableHelper:InsertValue(value, tbl, ...) --Allows you to insert a value at a given positon in a table and will create the keys that are required
     local args = {...}
     local tablePos = tbl
     
@@ -40,14 +40,14 @@ function OverdoneServers.TableHelper:InsertValue(value, tbl, ...) --Allows you t
     end
 end
 
-function OverdoneServers.TableHelper:HasValue(tbl, val) --Unlike the default table.HasValue() function, it will return the key where the value was found and will return nil otherwise
+function TableHelper:HasValue(tbl, val) --Unlike the default table.HasValue() function, it will return the key where the value was found and will return nil otherwise
     for k, v in pairs(tbl) do
-    	if (v == val) then return k end
+        if (v == val) then return k end
     end
     return nil
 end
 
-function OverdoneServers.TableHelper:RemoveIfFound(tbl, val) --Removes value if found
+function TableHelper:RemoveIfFound(tbl, val) --Removes value if found
     local key = self:HasValue(tbl, val)
     if key != nil then
         table.RemoveByValue(tbl, val)
@@ -56,13 +56,13 @@ function OverdoneServers.TableHelper:RemoveIfFound(tbl, val) --Removes value if 
     return nil
 end
 
-function OverdoneServers.TableHelper:RemoveValThenAdd(tbl, val) --Removes value if found then adds to end of table
-    local found = OverdoneServers.TableHelper:RemoveIfFound(tbl, val) != nil
+function TableHelper:RemoveValThenAdd(tbl, val) --Removes value if found then adds to end of table
+    local found = TableHelper:RemoveIfFound(tbl, val) != nil
     local pos = table.insert(tbl, val)
     return pos, found
 end
 
-function OverdoneServers.TableHelper:Purge(tbl1, tbl2) --Removes value if found in the other table. Returns what keys were removed from table1 (in ipairs) and how big that table is
+function TableHelper:Purge(tbl1, tbl2) --Removes value if found in the other table. Returns what keys were removed from table1 (in ipairs) and how big that table is
     local vals = {}
 
     for _,v in pairs(tbl2) do
@@ -83,7 +83,7 @@ function OverdoneServers.TableHelper:Purge(tbl1, tbl2) --Removes value if found 
     return keysRemoved, count
 end
 
-function OverdoneServers.TableHelper:FindKeyByValue(tbl, targetValue)
+function TableHelper:FindKeyByValue(tbl, targetValue)
     for key, value in pairs(tbl) do
         if value == targetValue then
             return key
@@ -92,7 +92,7 @@ function OverdoneServers.TableHelper:FindKeyByValue(tbl, targetValue)
     return nil
 end
 
-function OverdoneServers.TableHelper:FindKeysByValue(tbl, targetValue)
+function TableHelper:FindKeysByValue(tbl, targetValue)
     local keys = {}
     for key, value in pairs(tbl) do
         if value == targetValue then
@@ -101,3 +101,5 @@ function OverdoneServers.TableHelper:FindKeysByValue(tbl, targetValue)
     end
     return keys
 end
+
+return TableHelper

@@ -35,7 +35,6 @@
   -- Keys cannot be reused
   Color = enum.new("Color", {"RED", "RED"}) -- error "Attempted to reuse key: 'RED'"
 ]]
-local string = string
 
 local enum = {}
 

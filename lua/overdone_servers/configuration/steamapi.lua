@@ -10,11 +10,13 @@ return {
 // #
 // #    Place the registered api key in the variable below
 // #
-// #    @Enabled        : Determines if lib utilizes the Steam API
-// #    @Key            : If 'Enabled' set to 1; Place your key here
+// #    Enabled        : Determines if lib utilizes the Steam API
+// #    Key            : If 'Enabled' set to 1; Place your key here
 
-Enabled = 0,
+-- START OF CONFIG --
+
+Enabled = false,
 Key = ""
 
-//END OF CONFIG
+-- END OF CONFIG --
 }

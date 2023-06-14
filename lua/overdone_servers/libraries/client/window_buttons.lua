@@ -1,11 +1,11 @@
-OverdoneServers.WindowButtons = {}
-OverdoneServers.WindowButtons.Preset = {}
+local WindowButtons = {}
+WindowButtons.Preset = {}
 
 local function TilePanelsR2L(offset, pSize, position, mainPanelWidth, initalOffset)
     return mainPanelWidth - pSize*position - offset*position - initalOffset
 end
 
-function OverdoneServers.WindowButtons:Init(parentPanel, ...)
+function WindowButtons:Init(parentPanel, ...)
     if not IsValid(parentPanel) then return false end
 
     local buttonsize = 5 --(% of user's vertical screen size)
@@ -94,7 +94,7 @@ function OverdoneServers.WindowButtons:Init(parentPanel, ...)
 end
 
 //Give the panel to close when the close button is clicked
-function OverdoneServers.WindowButtons.Preset:Close(panel) --TODO: make it so this can change somehow.
+function WindowButtons.Preset:Close(panel) --TODO: make it so this can change somehow.
     if not IsValid(panel) then return false end
     return {"Close", 
         function(self, w,h)
@@ -103,14 +103,14 @@ function OverdoneServers.WindowButtons.Preset:Close(panel) --TODO: make it so th
     ,
         function(self, wasRightClick)
             if not wasRightClick then
-               panel:Remove()
+                panel:Remove()
             end
         end
     }
 end
 
 //Give a function to run when the admin menu button is clicked
-function OverdoneServers.WindowButtons.Preset:AdminMenu(panel, func)
+function WindowButtons.Preset:AdminMenu(panel, func)
     if not IsValid(panel) then return false end
     return {"AdminMenu", "customizable_notifications/speaker.png",
         function(self, wasRightClick)
@@ -120,3 +120,5 @@ function OverdoneServers.WindowButtons.Preset:AdminMenu(panel, func)
         end
     }
 end
+
+return WindowButtons

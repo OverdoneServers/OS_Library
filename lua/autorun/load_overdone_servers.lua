@@ -7,7 +7,6 @@ OverdoneServers.ModuleFile = "_module.lua"
 OverdoneServers.LoaderDir = OverdoneServers.MainDir .. "/loader"
 OverdoneServers.ConfigDir = OverdoneServers.MainDir .. "/configuration"
 OverdoneServers.LibrariesDir = OverdoneServers.MainDir .. "/libraries"
-OverdoneServers.CurrenciesDir = OverdoneServers.MainDir .. "/currencies"
 OverdoneServers.LibraryModuleName = "Overdone Servers: Library"
 
 -- Width that will be used to display module loading messages
@@ -17,7 +16,11 @@ if OverdoneServers.FinishedLoading then print("Reloading OverdoneServers") end
 
 include(OverdoneServers.LoaderDir .. "/shared/setup.lua")
 
+-- Prepare all sub-libraries
 OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/load_libs.lua")
+
+-- Prepare all module loading messages
+OverdoneServers:LoadSharedFile(OverdoneServers.LoaderDir .. "/shared/loader_messages.lua")
 
 OverdoneServers:LoadClientFile(OverdoneServers.LoaderDir .. "/client/materials.lua")
 

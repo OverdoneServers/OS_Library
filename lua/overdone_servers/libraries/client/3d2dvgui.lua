@@ -1,5 +1,7 @@
 //MODIFIED BY Overdone Servers
 
+local _3D2DVGUI = {}
+
 --[[
 	
 3D2D VGUI Wrapper
@@ -42,14 +44,14 @@ local function getCursorPos(pnl)
 	-- if there wasn't an intersection, don't calculate anything.
 	if not p then return end
 
-	if WorldToLocal(LocalPlayer():GetShootPos(), Angle(0,0,0), origin, angle).z < 0 then return end
+	if WorldToLocal(LocalPlayer():GetShootPos(), angle_zero, origin, angle).z < 0 then return end
 	if (pnl != nil and (pnl.ReachDistance or ReachDistanceDefault) or ReachDistanceDefault) != 0 then
 		if p:Distance(LocalPlayer():EyePos()) > (pnl != nil and (pnl.ReachDistance or ReachDistanceDefault) or ReachDistanceDefault) then
 			return
 		end
 	end
 
-	local pos = WorldToLocal(p, Angle(0,0,0), origin, angle)
+	local pos = WorldToLocal(p, angle_zero, origin, angle)
 
 	return pos.x, -pos.y
 end
@@ -299,3 +301,5 @@ end
 function vgui.End3D2D()
 	cam.End3D2D()
 end
+
+return _3D2DVGUI

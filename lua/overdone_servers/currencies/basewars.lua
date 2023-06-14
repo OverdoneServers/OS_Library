@@ -1,5 +1,5 @@
 local CURRENCY = {} //Creates an empty table to be used for setting up the currency
-CURRENCY.Name = "BaseWars"
+CURRENCY.name = "BaseWars"
 
 function CURRENCY:GetFunction(ply) //Add the currency addon's function to return a player's balance here
     return ply:GetMoney()
@@ -11,4 +11,4 @@ end
 
 CURRENCY.Settings = {TakeIfOver = true, SignAtStart = true, Sign = "$", ShowCommas = true} //Setting Defaults
 
-OverdoneServers.Currencies:AddCurrency(CURRENCY.Name, CURRENCY) //Creates the currency
+return CURRENCY

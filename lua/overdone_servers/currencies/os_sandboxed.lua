@@ -1,7 +1,7 @@
 local startBalance = 1000 //Sets the default balance people will have.
 
 local CURRENCY = {} //Creates an empty table to be used for setting up the currency
-CURRENCY.Name = "OS_Sandboxed"
+CURRENCY.name = "OS_Sandboxed"
 
 function CURRENCY:GetFunction(ply)
     return ply:GetNWInt("OverdoneServers:Currency:OS_Sandboxed", startBalance) //Add the currency addon's function to return a player's balance here
@@ -13,4 +13,4 @@ end
 
 CURRENCY.Settings = {TakeIfOver = true, SignAtStart = false, Sign = "ꬶ", ShowCommas = true} //Setting Defaults
 
-OverdoneServers.Currencies:AddCurrency(CURRENCY.Name, CURRENCY) //Creates the currency
+return CURRENCY

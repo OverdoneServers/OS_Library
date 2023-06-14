@@ -1,4 +1,4 @@
-OverdoneServers.BetterText = OverdoneServers.BetterText or {}
+local BetterText = {}
 
 if CLIENT then
     --Pulled from DarkRP
@@ -25,7 +25,7 @@ if CLIENT then
         return text, totalWidth
     end
 
-    function OverdoneServers.BetterText:TextWrap(text, font, maxWidth)
+    function BetterText:TextWrap(text, font, maxWidth)
         local totalWidth = 0
 
         surface.SetFont(font)
@@ -64,7 +64,7 @@ if CLIENT then
 
     local entityTable = {}
 
-    function OverdoneServers.BetterText:DrawText(text, font, w, h, defaultColor, alignX, alignY)
+    function BetterText:DrawText(text, font, w, h, defaultColor, alignX, alignY)
         text = istable(text) and text or {text}
         alignX = alignX or TEXT_ALIGN_LEFT
         alignY = alignY or TEXT_ALIGN_CENTER
@@ -102,7 +102,7 @@ if CLIENT then
     end
 end
 
-function OverdoneServers.BetterText:TableToText(text)
+function BetterText:TableToText(text)
     text = istable(text) and text or {text}
 
     local out = ""
@@ -114,7 +114,7 @@ function OverdoneServers.BetterText:TableToText(text)
     return out
 end
 
-function OverdoneServers.BetterText:AlignString(str, width, alignment, fillChar)
+function BetterText:AlignString(str, width, alignment, fillChar)
     fillChar = fillChar or " "
 
     if alignment == TEXT_ALIGN_LEFT then
@@ -132,3 +132,5 @@ function OverdoneServers.BetterText:AlignString(str, width, alignment, fillChar)
         return str
     end
 end
+
+return BetterText

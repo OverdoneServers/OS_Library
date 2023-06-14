@@ -1,5 +1,7 @@
 OverdoneServers.Materials = OverdoneServers.Materials or {}
 
+local SVG = OverdoneServers:GetLibrary("svg_loader")
+
 local mats = {
     ["Arrow:Glow"] = [[
         <svg width="228" height="227" viewBox="0 0 228 227" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -86,4 +88,4 @@ local mats = {
     ]],
 }
 
-OverdoneServers.SVG:CacheMaterials(OverdoneServers, mats)
+SVG:CacheMaterials(OverdoneServers, mats)

@@ -1,12 +1,13 @@
-OverdoneServers.M2D = {}
-function OverdoneServers.M2D.OutlinedBox(thickness, x, y, w, h, color)
+local M2D = {}
+
+function M2D.OutlinedBox(thickness, x, y, w, h, color)
 	surface.SetDrawColor(color)
 	for i = 0, thickness - 1 do
 		surface.DrawOutlinedRect(x + i, y + i, w - i * 2, h - i * 2)
 	end
 end
 
-function OverdoneServers.M2D.Circle(x, y, radius, seg)
+function M2D.Circle(x, y, radius, seg)
 	local cir = {}
 
 	table.insert( cir, { x = x, y = y, u = 0.5, v = 0.5 } )
@@ -20,3 +21,5 @@ function OverdoneServers.M2D.Circle(x, y, radius, seg)
 
 	surface.DrawPoly( cir )
 end
+
+return M2D

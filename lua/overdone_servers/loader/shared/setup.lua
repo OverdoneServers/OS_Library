@@ -47,18 +47,10 @@ OverdoneServers.ConsoleColors = {
 }
 
 function OverdoneServers:GetModule(folderName)
-    return OverdoneServers.Modules[folderName]
-end
-
-function OverdoneServers:GetLibrary(name)
-    name = string.lower(name)
-    if name == "enum" or name == "enums" then
-        return include(OverdoneServers.LibrariesDir .. "/lua-enum.lua")
-    elseif name == "lua-semver" or name == "versions" or name == "version" or name == "versioning" then
-        return include(OverdoneServers.LibrariesDir .. "/lua-semver.lua")
+    if (istable(OverdoneServers.Modules[folderName])) then
+        return OverdoneServers.Modules[folderName]
     else
-        error("Invalid Library used: \"" .. name .. "\"")
-        return nil
+        ErrorNoHalt("OverdoneServers: Attempted to get module '" .. folderName .. "' but it does not exist!\n")
     end
 end
 
@@ -98,98 +90,6 @@ function OverdoneServers:LoadClientFile(file)
     if CLIENT then include(file) end
 end
 
-OverdoneServers.ModuleLoadType = {
-    UNKNOWN = 0/0,
-    CUSTOM = 0,
-    SERVER = 1,
-    CLIENT = 2,
-    SHARED = 3,
-    FONTS = 4,
-
-    FromString = function(str)
-        return OverdoneServers.ModuleLoadType[string.upper(str)] or OverdoneServers.ModuleLoadType.CUSTOM
-    end,
-    ToString = function(type)
-        return OverdoneServers.TableHelper:FindKeyByValue(OverdoneServers.ModuleLoadType, type) or "CUSTOM"
-    end
-}
-
-OverdoneServers.Loading.lastModule = "" -- Used for internal use only
-OverdoneServers.Loading.lastType = OverdoneServers.ModuleLoadType.UNKNOWN -- Used for internal use only
-
-function OverdoneServers:PrintLoadingText(module, type)
-    local displayName = istable(module) and module.DisplayName or isstring(module) and module or "Invalid Name"
-
-    if module != self.Loading.lastModule then
-        self:PrettyPrint(OverdoneServers.Loading.ModuleHeader)
-        self:PrettyPrint(
-            OverdoneServers.Loading.ModuleVerticalLine ..
-            self.BetterText:AlignString(((istable(module) and module.FinishedLoading or nil) and "Reloading" or "Loading") ..
-            " " ..
-            (displayName or "Invalid Name"), OverdoneServers.ConsoleWidth-2, OverdoneServers.Loading.Align) ..
-            (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
-        )
-        self:PrettyPrint(OverdoneServers.Loading.ModuleHeaderSeparator)
-        if (istable(module)) then module.FinishedLoading = true end
-        self.Loading.lastModule = module
-        self.Loading.lastType = OverdoneServers.ModuleLoadType.UNKNOWN
-    end
-
-    if type != self.Loading.lastType then
-        self:PrettyPrint(
-            OverdoneServers.Loading.ModuleVerticalLine ..
-            self.BetterText:AlignString(OverdoneServers.ModuleLoadType.ToString(type), OverdoneServers.ConsoleWidth-2, OverdoneServers.Loading.Align) ..
-            (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
-        )
-        self:PrettyPrint(OverdoneServers.Loading.ModuleDataSeparator)
-        self.Loading.lastType = type
-    end
-end
-
-function OverdoneServers:LoadLuaFile(moduleDirectory, fileName, moduleLoadType)
-    local fileToLoadPath = OverdoneServers.ModulesDir .. "/" .. moduleDirectory .. "/"
-
-        if moduleLoadType == OverdoneServers.ModuleLoadType.SERVER then -- TODO: use to string function in table
-            fileToLoadPath = fileToLoadPath .. "server"
-        elseif moduleLoadType == OverdoneServers.ModuleLoadType.CLIENT then
-            fileToLoadPath = fileToLoadPath .. "client"
-        elseif moduleLoadType == OverdoneServers.ModuleLoadType.SHARED then
-            fileToLoadPath = fileToLoadPath .. "shared"
-        end
-
-        fileToLoadPath = fileToLoadPath .. "/" .. fileName
-
-    local okay = true
-    if not CLIENT then
-        if not file.Exists(fileToLoadPath, "LUA") then
-            fileName = fileName .. " - NOT FOUND"
-            okay = false
-        elseif file.Size(fileToLoadPath, "LUA") <= 0 then
-            fileName = fileName .. " - EMPTY"
-            okay = false
-        end
-    end
-    if not CLIENT or moduleLoadType != OverdoneServers.ModuleLoadType.SERVER then
-        OverdoneServers:PrettyPrint(
-            OverdoneServers.Loading.ModuleVerticalLine ..
-            OverdoneServers.BetterText:AlignString("[ Initialize ]: " .. fileName, OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT, OverdoneServers.Loading.Space) ..
-            (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
-        )
-    end
-    if okay then
-        if moduleLoadType == OverdoneServers.ModuleLoadType.SERVER then
-            if (SERVER) then include(fileToLoadPath) end
-        elseif moduleLoadType == OverdoneServers.ModuleLoadType.CLIENT then
-            OverdoneServers:LoadClientFile(fileToLoadPath)
-        elseif moduleLoadType == OverdoneServers.ModuleLoadType.SHARED then
-            OverdoneServers:LoadSharedFile(fileToLoadPath)
-        end
-        return true
-    else
-        return false
-    end
-end
-
 function OverdoneServers:LoadFont(f, fontLocation)
     local err = false
     if f[1] == nil or f[2] == nil or f[3] == nil then
@@ -198,11 +98,9 @@ function OverdoneServers:LoadFont(f, fontLocation)
         return
     end
 
-    OverdoneServers:PrettyPrint(
-        OverdoneServers.Loading.ModuleVerticalLine ..
-        OverdoneServers.BetterText:AlignString("[ Adding Font ]: " .. f[1], OverdoneServers.ConsoleWidth-2, TEXT_ALIGN_LEFT) ..
-        (OverdoneServers.Loading.Align == TEXT_ALIGN_LEFT and "" or OverdoneServers.Loading.ModuleVerticalLine)
-)
+    -- The only time this will be skipped is if we are currently loading sub-libaries
+    if isfunction(self.FontLoadedMessage) then self:FontLoadedMessage(f[1]) end
+
     if err then return end
     if SERVER then resource.AddSingleFile("resource/fonts/" .. f[2]) end
     if CLIENT then

@@ -1,5 +1,3 @@
-OverdoneServers.Currencies = {}
-
 local Currency = {}
 
 Currency.__index = Currency
@@ -43,83 +41,72 @@ function Currency:Format(amount) --Returns a formatted string of the amount.
     return self.Settings.SignAtStart and (self.Settings.Sign .. amount) or (amount .. self.Settings.Sign)
 end
 
-function OverdoneServers.Currencies:AddCurrency(currencyName, data)
+---------------------------------------------------------------------------------
+
+local Currencies = {}
+
+function Currencies:_initialize()
+    Currencies.GlobalData.Currencies = Currencies.GlobalData.Currencies or {}
+
+    for _, file in ipairs(file.Find(OverdoneServers.MainDir .. "/Currencies/*.lua", "LUA")) do
+        local currencyFile = OverdoneServers.MainDir .. "/Currencies/" .. file
+        local currencyData = include(currencyFile)
+        if istable(currencyData) then
+            Currencies:AddCurrency(currencyData)
+        else
+            ErrorNoHalt("[ OS: Currencies ] Error: Currency file \"" .. file .. "\" did not return a table!\n")
+        end
+    end
+end
+
+function Currencies:AddCurrency(data)
     setmetatable(data, Currency)
-    OverdoneServers.Currencies[currencyName] = data
-    return OverdoneServers.Currencies[currencyName]
+    Currencies.GlobalData.Currencies[data.name] = data
+    print("[ OS: Currencies ] Added currency \"" .. data.name .. "\"")
 end
 
-function OverdoneServers.Currencies:GetCurrency(currencyName)
-    return OverdoneServers.Currencies[currencyName]
+function Currencies:GetCurrency(currencyName)
+    return Currencies.GlobalData.Currencies[currencyName]
 end
 
-function OverdoneServers.Currencies:Add(currencyName, ply, amount)
-    local currencyData = OverdoneServers.Currencies[currencyName]
+function Currencies:Add(currencyName, ply, amount)
+    local currencyData = Currencies.GlobalData.Currencies[currencyName]
     if currencyData and isfunction(currencyData.Add) then
         return currencyData:Add(ply, amount)
     end
     return nil
 end
 
-function OverdoneServers.Currencies:Take(currencyName, ply, amount)
-    local currencyData = OverdoneServers.Currencies[currencyName]
+function Currencies:Take(currencyName, ply, amount)
+    local currencyData = Currencies.GlobalData.Currencies[currencyName]
     if currencyData and isfunction(currencyData.Take) then
         return currencyData:Take(ply, amount)
     end
     return nil
 end
 
-function OverdoneServers.Currencies:CanAfford(currencyName, ply, amount)
-    local currencyData = OverdoneServers.Currencies[currencyName]
+function Currencies:CanAfford(currencyName, ply, amount)
+    local currencyData = Currencies.GlobalData.Currencies[currencyName]
     if currencyData and isfunction(currencyData.CanAfford) then
         return currencyData:CanAfford(ply, amount)
     end
     return nil
 end
 
-function OverdoneServers.Currencies:Balance(currencyName, ply)
-    local currencyData = OverdoneServers.Currencies[currencyName]
+function Currencies:Balance(currencyName, ply)
+    local currencyData = Currencies.GlobalData.Currencies[currencyName]
     if currencyData and isfunction(currencyData.Balance) then
         return currencyData:Balance(ply, amount)
     end
     return nil
 end
 
-function OverdoneServers.Currencies:Format(currencyName, amount)
-    local currencyData = OverdoneServers.Currencies[currencyName]
+function Currencies:Format(currencyName, amount)
+    local currencyData = Currencies.GlobalData.Currencies[currencyName]
     if currencyData and isfunction(currencyData.Format) then
         return currencyData.Format(amount)
     end
     return nil
 end
 
-OverdoneServers:WaitForTicks(3, function()
-    for _, fileName in ipairs(file.Find(OverdoneServers.CurrenciesDir .. "/*.lua", "LUA")) do
-        local currencyFile = OverdoneServers.CurrenciesDir .. "/" .. fileName
-        if CLIENT or file.Size(currencyFile, "LUA") > 0 then
-            AddCSLuaFile(currencyFile)
-            include(currencyFile)
-        else
-            ErrorNoHalt("Error: Currency file EMPTY for \"" .. fileName .. "\"!\n") --TODO: change to pretty print
-        end
-    end
-end)
-
---[[
-
-timer.Simple(3, function()
-    local currency = OverdoneServers.Currencies:GetCurrency("SH_PointshopStandard")
-    for _,ply in ipairs(player.GetHumans()) do
-        print(ply, "Current", currency:Format(currency:Balance(ply)))
-        print(ply, "Add", tostring(currency:Add(ply, 100)))
-        print(ply, "Current", currency:Format(currency:Balance(ply)))
-        print(ply, "Take", currency:Take(ply, 1234))
-        print(ply, "Current", currency:Format(currency:Balance(ply)))
-        print(ply, "CanAfford '500'", currency:CanAfford(ply, 500))
-        print(ply, "CanAfford '1000'", currency:CanAfford(ply, 1000))
-        print(ply, "CanAfford '1000000000000'", currency:CanAfford(ply, 1000000000000))
-        print(ply, "Current", currency:Format(currency:Balance(ply)))
-    end
-end)
-
-]]
+return Currencies

@@ -1,3 +1,5 @@
+local EasingFunctions = {}
+
 local Mathf = {} //Allows for some Unity Mathf Functions to work
 Mathf.PI = math.pi
 function Mathf.Sin(a)
@@ -25,39 +27,35 @@ end
 local float = {}
 float.Epsilon = 1/math.huge
 
-
-
-OverdoneServers.EaseFunctions = {}
-
 local NaturalLogOf2 = 0.693147180559945309417232121458
 
 //
 // Easing functions
 //
 
-function OverdoneServers.EaseFunctions:Linear(time, from, to)
+function EasingFunctions:Linear(time, from, to)
     return Lerp(time, from, to)
 end
 
 
-function OverdoneServers.EaseFunctions:Spring(time, from, to)
+function EasingFunctions:Spring(time, from, to)
     time = Mathf.Clamp01(time)
     time = (Mathf.Sin(time * Mathf.PI * (0.2 + 2.5 * time * time * time)) * Mathf.Pow(1 - time, 2.2) + time) * (1 + (1.2 * (1 - time)))
     return from + (to - from) * time
 end
 
-function OverdoneServers.EaseFunctions:EaseInQuad(time, from, to)
+function EasingFunctions:EaseInQuad(time, from, to)
     to = to - from
     return to * time * time + from
 end
 
 
-function OverdoneServers.EaseFunctions:EaseOutQuad(time, from, to)
+function EasingFunctions:EaseOutQuad(time, from, to)
     to = to - from
     return -to * time * (time - 2) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutQuad(time, from, to)
+function EasingFunctions:EaseInOutQuad(time, from, to)
     time = time/.5
     to = to - from
     if (time < 1) then return to * 0.5 * time * time + from end
@@ -65,18 +63,18 @@ function OverdoneServers.EaseFunctions:EaseInOutQuad(time, from, to)
     return -to * 0.5 * (time * (time - 2) - 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInCubic(time, from, to)
+function EasingFunctions:EaseInCubic(time, from, to)
     to = to - from
     return to * time * time * time + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutCubic(time, from, to)
+function EasingFunctions:EaseOutCubic(time, from, to)
     time = time - 1
     to = to - from
     return to * (time * time * time + 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutCubic(time, from, to)
+function EasingFunctions:EaseInOutCubic(time, from, to)
     time = time/.5
     to = to - from
     if (time < 1) then return to * 0.5 * time * time * time + from end
@@ -84,18 +82,18 @@ function OverdoneServers.EaseFunctions:EaseInOutCubic(time, from, to)
     return to * 0.5 * (time * time * time + 2) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInQuart(time, from, to)
+function EasingFunctions:EaseInQuart(time, from, to)
     to = to - from
     return to * time * time * time * time + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutQuart(time, from, to)
+function EasingFunctions:EaseOutQuart(time, from, to)
     time = time - 1
     to = to - from
     return -to * (time * time * time * time - 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutQuart(time, from, to)
+function EasingFunctions:EaseInOutQuart(time, from, to)
     time = time/.5
     to = to - from
     if (time < 1) then return to * 0.5 * time * time * time * time + from end
@@ -103,18 +101,18 @@ function OverdoneServers.EaseFunctions:EaseInOutQuart(time, from, to)
     return -to * 0.5 * (time * time * time * time - 2) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInQuint(time, from, to)
+function EasingFunctions:EaseInQuint(time, from, to)
     to = to - from
     return to * time * time * time * time * time + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutQuint(time, from, to)
+function EasingFunctions:EaseOutQuint(time, from, to)
     time = time - 1
     to = to - from
     return to * (time * time * time * time * time + 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutQuint(time, from, to)
+function EasingFunctions:EaseInOutQuint(time, from, to)
     time = time/.5
     to = to - from
     if (time < 1) then return to * 0.5 * time * time * time * time * time + from end
@@ -122,32 +120,32 @@ function OverdoneServers.EaseFunctions:EaseInOutQuint(time, from, to)
     return to * 0.5 * (time * time * time * time * time + 2) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInSine(time, from, to)
+function EasingFunctions:EaseInSine(time, from, to)
     to = to - from
     return -to * Mathf.Cos(time * (Mathf.PI * 0.5)) + to + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutSine(time, from, to)
+function EasingFunctions:EaseOutSine(time, from, to)
     to = to - from
     return to * Mathf.Sin(time * (Mathf.PI * 0.5)) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutSine(time, from, to)
+function EasingFunctions:EaseInOutSine(time, from, to)
     to = to - from
     return -to * 0.5 * (Mathf.Cos(Mathf.PI * time) - 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInExpo(time, from, to)
+function EasingFunctions:EaseInExpo(time, from, to)
     to = to - from
     return to * Mathf.Pow(2, 10 * (time - 1)) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutExpo(time, from, to)
+function EasingFunctions:EaseOutExpo(time, from, to)
     to = to - from
     return to * (-Mathf.Pow(2, -10 * time) + 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutExpo(time, from, to)
+function EasingFunctions:EaseInOutExpo(time, from, to)
     time = time/.5
     to = to - from
     if (time < 1) then return to * 0.5 * Mathf.Pow(2, 10 * (time - 1)) + from end
@@ -155,18 +153,18 @@ function OverdoneServers.EaseFunctions:EaseInOutExpo(time, from, to)
     return to * 0.5 * (-Mathf.Pow(2, -10 * time) + 2) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInCirc(time, from, to)
+function EasingFunctions:EaseInCirc(time, from, to)
     to = to - from
     return -to * (Mathf.Sqrt(1 - time * time) - 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutCirc(time, from, to)
+function EasingFunctions:EaseOutCirc(time, from, to)
     time = time - 1
     to = to - from
     return to * Mathf.Sqrt(1 - time * time) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutCirc(time, from, to)
+function EasingFunctions:EaseInOutCirc(time, from, to)
     time = time/.5
     to = to - from
     if (time < 1) then return -to * 0.5 * (Mathf.Sqrt(1 - time * time) - 1) + from end
@@ -174,13 +172,13 @@ function OverdoneServers.EaseFunctions:EaseInOutCirc(time, from, to)
     return to * 0.5 * (Mathf.Sqrt(1 - time * time) + 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInBounce(time, from, to)
+function EasingFunctions:EaseInBounce(time, from, to)
     to = to - from
     local d = 1
     return to - self:EaseOutBounce(0, to, d - time) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutBounce(time, from, to)
+function EasingFunctions:EaseOutBounce(time, from, to)
     --time /= 1f
     to = to - from
     if (time < (1 / 2.75)) then
@@ -198,28 +196,28 @@ function OverdoneServers.EaseFunctions:EaseOutBounce(time, from, to)
     return to * (7.5625 * (time) * time + .984375) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutBounce(time, from, to)
+function EasingFunctions:EaseInOutBounce(time, from, to)
     to = to - from
     local d = 1
     if (time < d * 0.5) then return self:EaseInBounce(0, to, time * 2) * 0.5 + from end
     return self:EaseOutBounce(0, to, time * 2 - d) * 0.5 + to * 0.5 + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInBack(time, from, to)
+function EasingFunctions:EaseInBack(time, from, to)
     to = to - from
     --time /= 1
     local s = 1.70158
     return to * (time) * time * ((s + 1) * time - s) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutBack(time, from, to)
+function EasingFunctions:EaseOutBack(time, from, to)
     local s = 1.70158
     to = to - from
     time = time - 1
     return to * ((time) * time * ((s + 1) * time + s) + 1) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutBack(time, from, to)
+function EasingFunctions:EaseInOutBack(time, from, to)
     local s = 1.70158
     to = to - from
     time = time/.5
@@ -232,7 +230,7 @@ function OverdoneServers.EaseFunctions:EaseInOutBack(time, from, to)
     return to * 0.5 * ((time) * time * (((s) + 1) * time + s) + 2) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseInElastic(time, from, to)
+function EasingFunctions:EaseInElastic(time, from, to)
     to = to - from
 
     local d = 1
@@ -256,7 +254,7 @@ function OverdoneServers.EaseFunctions:EaseInElastic(time, from, to)
     return -(a * Mathf.Pow(2, 10 * (time)) * Mathf.Sin((time * d - s) * (2 * Mathf.PI) / p)) + from
 end
 
-function OverdoneServers.EaseFunctions:EaseOutElastic(time, from, to)
+function EasingFunctions:EaseOutElastic(time, from, to)
     to = to - from
 
     local d = 1
@@ -279,7 +277,7 @@ function OverdoneServers.EaseFunctions:EaseOutElastic(time, from, to)
     return (a * Mathf.Pow(2, -10 * time) * Mathf.Sin((time * d - s) * (2 * Mathf.PI) / p) + to + from)
 end
 
-function OverdoneServers.EaseFunctions:EaseInOutElastic(time, from, to)
+function EasingFunctions:EaseInOutElastic(time, from, to)
     to = to - from
 
     local d = 1
@@ -307,7 +305,7 @@ function OverdoneServers.EaseFunctions:EaseInOutElastic(time, from, to)
     return a * Mathf.Pow(2, -10 * (time)) * Mathf.Sin((time * d - s) * (2 * Mathf.PI) / p) * 0.5 + to + from
 end
 
-function OverdoneServers.EaseFunctions:SmoothDamp(current, target, currentVelocity, smoothTime, maxSpeed, deltaTime)
+function EasingFunctions:SmoothDamp(current, target, currentVelocity, smoothTime, maxSpeed, deltaTime)
     local num = 2 / smoothTime
     local num2 = num * deltaTime
     local damp = 1 / (1 + num2 + 0.48 * num2 * num2 + 0.235 * num2 * num2 * num2)
@@ -332,3 +330,5 @@ function OverdoneServers.EaseFunctions:SmoothDamp(current, target, currentVeloci
     
     return next, currentVelocity
 end
+
+return EasingFunctions

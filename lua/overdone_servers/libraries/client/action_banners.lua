@@ -1,57 +1,63 @@
-OverdoneServers:LoadFont(
-    {"TimePassed", "rounded-m-plus1c-extrabold.ttf",
-        {
-            font = "Rounded Mplus 1c ExtraBold",
-            size = 8,
-            weight = 500,
-        }
-    }, "OverdoneServers:ActionBanners:"
-)
+local ActionBanners = {}
 
-OverdoneServers:LoadFont(
-    {"TimePassed:Small", "rounded-m-plus1c-medium.ttf",
-        {
-            font = "Rounded Mplus 1c Medium",
-            size = 7,
-            weight = 500,
-        }
-    }, "OverdoneServers:ActionBanners:"
-)
+ActionBanners.Dependencies = {
+    "table_helper"
+}
 
-OverdoneServers:LoadFont(
-    {"Text", "rounded-m-plus1c-medium.ttf",
-        {
-            font = "Rounded Mplus 1c Medium",
-            size = 7,
-            weight = 500,
-        }
-    }, "OverdoneServers:ActionBanners:"
-)
+function ActionBanners:_initialize()
+    self.GlobalData.GlobalID = 0
 
-OverdoneServers.ActionBanners = OverdoneServers.ActionBanners or {}
+    self.GlobalData.TableHelper = OverdoneServers:GetLibrary("table_helper")
 
-local ActionBanners = OverdoneServers.ActionBanners
+    OverdoneServers:LoadFont(
+        {"TimePassed", "rounded-m-plus1c-extrabold.ttf",
+            {
+                font = "Rounded Mplus 1c ExtraBold",
+                size = 8,
+                weight = 500,
+            }
+        }, "OverdoneServers:ActionBanners:"
+    )
 
-if IsValid(ActionBanners.Panel) then LocalPlayer():ChatPrint("aaaaa") ActionBanners.Panel:Remove() end
+    OverdoneServers:LoadFont(
+        {"TimePassed:Small", "rounded-m-plus1c-medium.ttf",
+            {
+                font = "Rounded Mplus 1c Medium",
+                size = 7,
+                weight = 500,
+            }
+        }, "OverdoneServers:ActionBanners:"
+    )
 
-ActionBanners.Modules = {
-    ["default"] = {
-        settings = {
-            ["slidespeed"] = 1,
-            ["lifetime"] = 60,
-            ["width"] = 250 / 1920,
-            ["scale_width_to_text"] = false, --width becomes min width
-            ["countdown"] = false, --Uses lifetime - timepassed
-            ["default_text_color"] = Color(255,255,255),
-            ["background_color"] = Color(75,75,75,150),
-            ["max_banners"] = 10,
-            ["timer_color"] = Color(200,200,200),
-            ["timer_text_color"] = Color(0,0,0),
-            ["queue_delay"] = 0.01,
-            ["display_by_time"] = false
+    OverdoneServers:LoadFont(
+        {"Text", "rounded-m-plus1c-medium.ttf",
+            {
+                font = "Rounded Mplus 1c Medium",
+                size = 7,
+                weight = 500,
+            }
+        }, "OverdoneServers:ActionBanners:"
+    )
+
+    self.GlobalData.Modules = {
+        ["default"] = {
+            settings = {
+                ["slidespeed"] = 1,
+                ["lifetime"] = 60,
+                ["width"] = 250 / 1920,
+                ["scale_width_to_text"] = false, --width becomes min width
+                ["countdown"] = false, --Uses lifetime - timepassed
+                ["default_text_color"] = Color(255,255,255),
+                ["background_color"] = Color(75,75,75,150),
+                ["max_banners"] = 10,
+                ["timer_color"] = Color(200,200,200),
+                ["timer_text_color"] = Color(0,0,0),
+                ["queue_delay"] = 0.01,
+                ["display_by_time"] = false
+            }
         }
     }
-}
+end
 
 local bannerHeight = nil
 local bannerOrigin = nil -- middle of your screen, shifted up slightly
@@ -71,7 +77,7 @@ OnScreenSizeChange() -- Gets Inital Size
 hook.Add("OnScreenSizeChanged", "OverdoneServers:ActionBanners", OnScreenSizeChange)
 
 local function GetNextInLine(module)
-    local queue = OverdoneServers.TableHelper:GetValue(ActionBanners.Modules or {}, module, "banner_queue")
+    local queue = ActionBanners.GlobalData.TableHelper:GetValue(ActionBanners.GlobalData.Modules or {}, module, "banner_queue")
     local queueDelay = ActionBanners:GetSetting(module, "queue_delay")
 
     local bannerPanel = nil
@@ -93,18 +99,16 @@ local function GetNextInLine(module)
     return bannerPanel
 end
 
-local GlobalID = 0
-
 local function GetAllBanners(modulee, ignoreHidden)
     local banners = {}
     local bannersLen = 0
-    for module ,v in pairs(ActionBanners.Modules or {}) do
+    for module ,v in pairs(ActionBanners.GlobalData.Modules or {}) do
         if modulee != nil and modulee != module then continue end
         local display_by_time = ActionBanners:GetSetting(module, "display_by_time")
         local nextToShow = GetNextInLine(module)
         if nextToShow != nil then
             --nextToShow:Show()
-            OverdoneServers.TableHelper:InsertValue(nextToShow, ActionBanners.Modules, module, "banners")
+            ActionBanners.GlobalData.TableHelper:InsertValue(nextToShow, ActionBanners.GlobalData.Modules, module, "banners")
             --ActionBanners:UpdateBannerPos()
         end
 
@@ -171,7 +175,7 @@ local function BuildActionBannerPanel()
             panel.animProgress = panel.animProgress or 0
 
             if panel.timepassed <= math.pi then
-                panel.timepassed = panel.timepassed + (RealFrameTime() * 3)
+                panel.timepassed = panel.timepassed + (FrameTime() * 3)
                 panel.animProgress = panel.boostToPos and math.cos(((3 * math.pi) + panel.timepassed) / 2) or (math.cos(math.pi + panel.timepassed) + 1) / 2
             end
 
@@ -209,7 +213,7 @@ end
 function ActionBanners:CreateBanner(module, topText, bottomText)
     local panel = vgui.Create("Panel", IsValid(ActionBanners.Panel) and ActionBanners.Panel or BuildActionBannerPanel())
     panel.DefRemove = panel.Remove
-    panel.GlobalID = GlobalID
+    panel.GlobalID = ActionBanners.GlobalData.GlobalID
 
     function panel:Remove()
         if self.Removing then return end
@@ -252,7 +256,7 @@ function ActionBanners:CreateBanner(module, topText, bottomText)
         self._animProgress = self._animProgress or 0
 
         if self._timepassed <= math.pi then
-            self._timepassed = self._timepassed + ((RealFrameTime() * 4) * (self.FinalRemove and 2 or 1) * ActionBanners:GetSetting(module, "slidespeed"))
+            self._timepassed = self._timepassed + ((FrameTime() * 4) * (self.FinalRemove and 2 or 1) * ActionBanners:GetSetting(module, "slidespeed"))
 
             self._animProgress = self._boostToPos and math.cos(((3 * math.pi) + self._timepassed) / 2) or (math.cos(math.pi + self._timepassed) + 1) / 2
 
@@ -354,35 +358,35 @@ function ActionBanners:CreateBanner(module, topText, bottomText)
 end
 
 function ActionBanners:Show(module)
-    OverdoneServers.TableHelper:SetValue(false, ActionBanners.Modules, module, "hidden")
+    ActionBanners.GlobalData.TableHelper:SetValue(false, ActionBanners.GlobalData.Modules, module, "hidden")
     return true
 end
 
 function ActionBanners:Hide(module)
-    OverdoneServers.TableHelper:SetValue(true, ActionBanners.Modules, module, "hidden")
+    ActionBanners.GlobalData.TableHelper:SetValue(true, ActionBanners.GlobalData.Modules, module, "hidden")
     return true
 end
 
 function ActionBanners:IsVisible(module)
-    return OverdoneServers.TableHelper:GetValue(ActionBanners.Modules, module, "hidden") != true
+    return ActionBanners.GlobalData.TableHelper:GetValue(ActionBanners.GlobalData.Modules, module, "hidden") != true
 end
 
 function ActionBanners:SetSetting(module, name, value)
     if value == nil then
-        value = OverdoneServers.TableHelper:GetValue(ActionBanners.Modules, "default", "settings", name)
+        value = ActionBanners.GlobalData.TableHelper:GetValue(ActionBanners.GlobalData.Modules, "default", "settings", name)
     end
-    OverdoneServers.TableHelper:SetValue(value, ActionBanners.Modules, module, "settings", name)
+    ActionBanners.GlobalData.TableHelper:SetValue(value, ActionBanners.GlobalData.Modules, module, "settings", name)
     return true
 end
 
 function ActionBanners:GetSetting(module, name)
-    local value = OverdoneServers.TableHelper:GetValue(ActionBanners.Modules, module, "settings", name)
+    local value = ActionBanners.GlobalData.TableHelper:GetValue(ActionBanners.GlobalData.Modules, module, "settings", name)
 
     if value != nil then
         return value, module == "default"
     end
 
-    value = OverdoneServers.TableHelper:GetValue(ActionBanners.Modules, "default", "settings", name)
+    value = ActionBanners.GlobalData.TableHelper:GetValue(ActionBanners.GlobalData.Modules, "default", "settings", name)
 
     if value != nil then
         return value, true
@@ -394,25 +398,25 @@ function ActionBanners:AddBanner(module, topText, bottomText)
     topText = istable(topText) and topText or {topText}
     bottomText = istable(bottomText) and bottomText or {bottomText}
 
-    GlobalID = GlobalID - 1
+    ActionBanners.GlobalData.GlobalID = ActionBanners.GlobalData.GlobalID - 1
     local panel = ActionBanners:CreateBanner(module, topText, bottomText)
     panel.module = module
     panel.waitTime = RealTime()
     panel:Hide()
 
-    OverdoneServers.TableHelper:InsertValue(panel, ActionBanners.Modules, module, "banner_queue")
+    ActionBanners.GlobalData.TableHelper:InsertValue(panel, ActionBanners.GlobalData.Modules, module, "banner_queue")
     -- Once the panel is created and added to the queue, the queue has its own function that will auto update the client's screen, which will add the next banner and remove the top banner (if max banners are shown)
 
     -- ActionBanners:UpdateBannerPos()
 
-    return GlobalID, panel
+    return ActionBanners.GlobalData.GlobalID, panel
 end
 
 function ActionBanners:RemoveBanner(module, id)
 
     --[[
         
-    local mod = ActionBanners.Modules[module]
+    local mod = ActionBanners.GlobalData.Modules[module]
     if istable(mod) then
         local banners = mod["banners"]
         if istable(banners) then
@@ -447,7 +451,7 @@ function ActionBanners:GetBanners(module)
 end
 
 function ActionBanners:GetBanner(module, id)
-    local mod = ActionBanners.Modules[module]
+    local mod = ActionBanners.GlobalData.Modules[module]
     if istable(mod) then
         local banners = mod["banners"]
         if istable(banners) then
@@ -466,70 +470,5 @@ function ActionBanners:SetBanner(module, id, topText, bottomText)
     end
     return false
 end
---[[
-ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
-ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
-ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
-ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
-ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
-ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye")
 
-timer.Simple(  3+1, function() ActionBanners:AddBanner("test", {LocalPlayer(), Color(255,0,0), " Testing ", Color(0,255,255), "Color!", 1234}, "Aye") end)
-timer.Simple(  3+2, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+2.1, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+2.2, function() ActionBanners:AddBanner("test", LocalPlayer(), {Color(100,255,150), "Testing"}) end)
-timer.Simple(3+2.3, function() 
-    local id = ActionBanners:AddBanner("test", {Color(255,100,100), LocalPlayer()}, {Color(100,255,150), "Bet: ", Color(30,200,30), "$1000"})
-    timer.Simple(3, function() ActionBanners:RemoveBanner("test", id) end)
-end)
-timer.Simple(3+2.4, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+2.5, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+2.6, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+2.7, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+2.8, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+2.9, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+4, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+5, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+6, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+7, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-
-timer.Simple(3+12, function() ActionBanners:AddBanner("test", LocalPlayer(), "Testing") end)
-timer.Simple(3+5, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-timer.Simple(3+13, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-timer.Simple(3+13.1, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-timer.Simple(3+13.2, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-timer.Simple(3+13.3, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-timer.Simple(3+13.4, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-timer.Simple(3+13.5, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-timer.Simple(3+14, function() ActionBanners:AddBanner("aa", LocalPlayer(), "aaaaaa") end)
-
-timer.Simple(8, function()
-    ActionBanners:SetBanner("test", 3, "Bruh")
-end)
-
-timer.Simple(10, function()
-    --ActionBanners:RemoveAll()
-end)
-
-timer.Simple(1, function()
-    ActionBanners:SetSetting("test", "lifetime", 18)
-end)
-timer.Simple(8, function()
-    ActionBanners:SetSetting("test", "width", (500/1920))
-    ActionBanners:SetSetting("test", "slidespeed", .5)
-    ActionBanners:SetSetting("test", "countdown", true)
-end)
-timer.Simple(9, function()
-    ActionBanners:Hide("test")
-end)
-timer.Simple(12, function()
-    ActionBanners:Show("test")
-end)
-timer.Simple(12, function()
-    ActionBanners:SetSetting("test", "width", (100/1920))
-end)
-
-timer.Simple(16, function()
-    ActionBanners:SetSetting("test", "width", (1700/1920))
-end)
---]]
+return ActionBanners

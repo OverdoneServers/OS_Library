@@ -1,11 +1,11 @@
 OverdoneServers.Modules = OverdoneServers.Modules or {}
-
 OverdoneServers.ModuleMeta = OverdoneServers.ModuleMeta or include(OverdoneServers.LoaderDir .. "/shared/class_module.lua")
 
-local lua_semver = OverdoneServers:GetLibrary("versioning")
+local semver = OverdoneServers:GetLibrary("semver")
+
 function OverdoneServers:CompareVersions(v1, v2) -- Returns true if V1 is Greater or Equal to V2
     assert(isstring(v1) and isstring(v2), "Both Versions Must Be Strings!")
-    return lua_semver(v1) >= lua_semver(v2)
+    return semver(v1) >= semver(v2)
 end
 
 local function GetModuleFilePaths()
