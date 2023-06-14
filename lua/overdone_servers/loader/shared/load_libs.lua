@@ -1,6 +1,3 @@
-
--- PrintTable(OverdoneServers.Libraries)
-
 OverdoneServers.Libraries = {}
 
 local function SortByLibraryLoadOrder(libraries)
@@ -71,7 +68,6 @@ local function SetupLibrary(name, state)
         OverdoneServers.Libraries[name].GlobalData = library.GlobalData -- Data is shared between all instances of the library
         OverdoneServers.Libraries[name].Dependencies = library.Dependencies
         OverdoneServers.Libraries[name]._initialize = library._initialize
-        -- print("[ Library ] (" .. state .. ") Loaded: " .. name)
     else
         ErrorNoHalt("[ OS: Library ] (" .. state .. ") Failed to load: " .. name .. ". Library must return a table.")
     end
@@ -111,14 +107,9 @@ end
 
 -- initialize all libraries
 local sortedLibraries = SortByLibraryLoadOrder(OverdoneServers.Libraries)
-print("Sorted is below")
-PrintTable(sortedLibraries)
 for _, library in ipairs(sortedLibraries) do
     if library._initialize then
         library:_initialize()
     end
-    print("print msg is below")
-    print(library)
-
     print("[ OS: Library ] (" .. tostring(library.state) .. ") Loaded: " .. tostring(library.name))
 end
