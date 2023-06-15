@@ -1,60 +1,69 @@
-OverdoneServers.MySQL = {}
+local LoginInfo = include(OverdoneServers.ConfigDir .. "/sql.lua")
 
-local MySQL = OverdoneServers.MySQL
-
-local LoginInfo = include(OverdoneServers.ConfigDir .. "/mysql.lua")
-
-local mysqloo = nil
-
-if (LoginInfo.Enabled) then
-    mysqloo = require("mysqloo")
-    if (mysqloo) then
-        print("[ OverdoneServers ] MySQLoo was found!")
-        
-    else
-        ErrorNoHalt("[ OverdoneServers ] MySQLoo is not installed! Cannot connect to MySQL!")
+if not OverdoneServers.Database then
+    if (LoginInfo.Enabled) then
+        local success = pcall(require, "mysqloo")
+        if (not success) then
+            ErrorNoHalt("[ OverdoneServers ] MySQLoo is not installed! Cannot connect to SQL!")
+        end
     end
+
+    OverdoneServers.Database = {}
 end
 
-function MySQL.Connect()
+function OverdoneServers.Database:Connect()
     if not mysqloo then
         print("MySQLoo not installed!")
         return
     end
 
+    if (self.DB and self.DB:status() == mysqloo.DATABASE_CONNECTED) then
+        print("[ OverdoneServers ] SQL is already connected!")
+        return
+    end
+
     local db = mysqloo.connect(LoginInfo.Hostname, LoginInfo.Username, LoginInfo.Password, LoginInfo.Database, LoginInfo.Port)
 
-    function db:onConnected()
-        print("[ OverdoneServers ] MySQL Connected!")
+    function db.onConnected()
+        print("[ OverdoneServers ] SQL Connected!")
     end
 
-    function db:onConnectionFailed(err)
-        ErrorNoHalt("[ OverdoneServers ] MySQL Connection failed! Error: " .. err)
+    function db.onConnectionFailed(err)
+        ErrorNoHalt("[ OverdoneServers ] SQL Connection failed! Error: ", err)
     end
 
+    print("[ OverdoneServers ] Connecting to SQL...")
     db:connect()
 
-    MySQL.DB = db
+    self.DB = db
 
     return db
 end
 
-function MySQL.Query(query, callback)
-    if not MySQL.DB then
-        ErrorNoHalt("[ OverdoneServers ] Tried to send Query. However, MySQL is not connected!")
+function OverdoneServers.Database:Query(query, successCallback, errorCallback)
+    if not self.DB or self.DB:status() != mysqloo.DATABASE_CONNECTED then
+        if isfunction(errorCallback) then
+            errorCallback("SQL is not connected!")
+        else
+            ErrorNoHalt("[ OverdoneServers ] Tried to send Query. However, SQL is not connected!")
+        end
         return
     end
 
-    local q = MySQL.DB:query(query)
+    local q = self.DB:query(query)
 
     function q:onSuccess(data)
-        if callback then
-            callback(data)
+        if isfunction(successCallback) then
+            successCallback(data)
         end
     end
 
     function q:onError(err)
-        ErrorNoHalt("[ OverdoneServers ] MySQL Query failed! Error: " .. err)
+        if isfunction(errorCallback) then
+            errorCallback(err)
+        else
+            ErrorNoHalt("[ OverdoneServers ] SQL Query failed!\n", err, "\n")
+        end
     end
 
     q:start()
@@ -62,6 +71,6 @@ function MySQL.Query(query, callback)
     return q
 end
 
-if (LoginInfo.Enabled) then
-    MySQL.Connect() -- Attempt to connect on startup
+if (LoginInfo.Enabled and (not OverdoneServers.Database.DB or OverdoneServers.Database.DB:status() != mysqloo.DATABASE_CONNECTED)) then
+    OverdoneServers.Database:Connect()
 end
