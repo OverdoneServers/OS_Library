@@ -23,7 +23,7 @@ end
 
 local function SortByModuleLoadOrder(modules)
     local visited, resolved, visiting = {}, {}, {}
-    
+
     local function visit(module)
         if visited[module] then return end
         if visiting[module] then return false end
@@ -120,7 +120,7 @@ local function LoadModule(module)
             if type != OverdoneServers.ModuleLoadType.MATERIALS and (not CLIENT or type != OverdoneServers.ModuleLoadType.SERVER) then
                 OverdoneServers:PrintLoadingText(module, type)
             end
-            
+
             if type == OverdoneServers.ModuleLoadType.FONTS then
                 OverdoneServers:LoadFont(f, module.FontLocation)
             elseif type == OverdoneServers.ModuleLoadType.MATERIALS then

@@ -6,6 +6,7 @@ Module.__index = Module
 function Module.new(ModuleTable, folderName)
     setmetatable(ModuleTable, Module)
     ModuleTable.FolderName = ModuleTable.FolderName or folderName
+    ModuleTable.FolderPath = OverdoneServers.ModulesDir .. "/" .. ModuleTable.FolderName
     ModuleTable.DisplayName = ModuleTable.DisplayName or ModuleTable.FolderName
     ModuleTable._Enabled = false
     ModuleTable.Data = ModuleTable.Data or {}
