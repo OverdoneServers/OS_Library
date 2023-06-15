@@ -11,6 +11,18 @@ if not OverdoneServers.Database then
     OverdoneServers.Database = {}
 end
 
+function WaitForConnection()
+    local start = SysTime()
+    while (OverdoneServers.Database.DB:status() != mysqloo.DATABASE_CONNECTED) do
+        if (SysTime() - start > LoginInfo.ConnectionTimeout) then
+            print("[ OverdoneServers ] SQL Connection timed out after " .. tostring(LoginInfo.ConnectionTimeout) .. " seconds!")
+            return false
+        end
+    end
+
+    return true
+end
+
 function OverdoneServers.Database:Connect()
     if not mysqloo then
         print("MySQLoo not installed!")
@@ -33,11 +45,18 @@ function OverdoneServers.Database:Connect()
     end
 
     print("[ OverdoneServers ] Connecting to SQL...")
-    db:connect()
 
     self.DB = db
 
-    return db
+    db:connect()
+
+    if isnumber(LoginInfo.ConnectionTimeout and not WaitForConnection()) then
+        self.DB = nil
+    end
+
+    if (self.DB and self.DB:status() == mysqloo.DATABASE_CONNECTED) then
+        print("[ OverdoneServers ] SQL is connected!")
+    end
 end
 
 function OverdoneServers.Database:Query(query, successCallback, errorCallback)
