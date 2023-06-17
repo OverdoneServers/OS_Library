@@ -76,13 +76,18 @@ function Module:AddDebugEntry(name, description, funcDo, funcGet, options)
 end
 
 function Module:Print(...)
-    print(self.DisplayName .. ": ", ...)
-end
-function Module:PrintDebug(...)
-    print("[DEBUG] " .. self.DisplayName .. ": ", ...)
+    print("[ OverdoneServers ] [" .. self.DisplayName .. "] ", ...)
 end
 
-function Module:HookAdd(...) 
+function Module:PrintDebug(...)
+    print("[DEBUG] [ OverdoneServers ] [" .. self.DisplayName .. "] ", ...)
+end
+
+function Module:PrintError(...)
+    ErrorNoHalt("[ERROR] [ OverdoneServers ] [" .. self.DisplayName .. "] ", ...)
+end
+
+function Module:HookAdd(...)
     local args = {...}
     args[2] = self.HookPrefix .. args[2]
     hook.Add(unpack(args))

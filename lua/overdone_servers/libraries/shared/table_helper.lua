@@ -15,7 +15,7 @@ end
 function TableHelper:SetValue(value, tbl, ...) --Allows you to set a value at a given positon in a table and will create the keys that are required
     local args = {...}
     local tablePos = tbl
-    
+
     for i=1, #args do
         if tablePos[args[i]] == nil then tablePos[args[i]] = {} end
         if #args > i then
@@ -29,7 +29,7 @@ end
 function TableHelper:InsertValue(value, tbl, ...) --Allows you to insert a value at a given positon in a table and will create the keys that are required
     local args = {...}
     local tablePos = tbl
-    
+
     for i=1, #args do
         if tablePos[args[i]] == nil then tablePos[args[i]] = {} end
         if #args > i then
